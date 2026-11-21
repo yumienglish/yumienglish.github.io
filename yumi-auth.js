@@ -47,7 +47,8 @@
     '.ya-ov{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;' +
     'font-family:var(--ya-font);color:var(--ya-text);-webkit-text-size-adjust:100%;box-sizing:border-box}' +
     '.ya-ov *{box-sizing:border-box}' +
-    '.ya-ov.ya-full{background:var(--ya-bg)}' +
+    '.ya-ov.ya-full{background:var(--ya-bg);align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}' +
+    '.ya-full .ya-card{margin:auto}.ya-lbl small{font-weight:400;opacity:.7}.ya-mode{margin:12px 0 4px}' +
     '.ya-ov.ya-dim{background:rgba(10,10,30,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}' +
     '.ya-card{background:var(--ya-card);border-radius:24px;box-shadow:0 18px 50px rgba(0,0,0,.22);width:100%;max-width:420px;padding:26px 22px;' +
     'animation:ya-pop .28s cubic-bezier(.2,1.4,.5,1)}' +
@@ -153,63 +154,121 @@
       var ov = overlay('ya-full', opts.theme);
       var mascot = opts.mascot ? (/^[\w./-]+\.(webp|png|jpe?g|gif|svg)$/i.test(opts.mascot)
         ? '<img class="ya-mascot" src="' + esc(opts.mascot) + '" alt="">' : '<div class="ya-mascot">' + esc(opts.mascot) + '</div>') : '';
-      ov.innerHTML = '<form class="ya-card" autocomplete="off">' + mascot +
+      var pinRow = function (g, label) {
+        return '<div class="ya-pin" data-g="' + g + '">' + [0, 1, 2, 3].map(function (i) {
+          return '<input inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" aria-label="' + label + ' ' + (i + 1) + '">';
+        }).join('') + '</div>';
+      };
+      ov.innerHTML = '<div class="ya-card">' + mascot +
         '<h1 class="ya-h">' + esc(opts.title || 'Who’s playing?') + '</h1>' +
+        '<div class="ya-tabs ya-mode"><button type="button" data-m="in" class="on">Log in</button><button type="button" data-m="new">✨ Tạo tài khoản</button></div>' +
+        // ---- đăng nhập ----
+        '<form class="ya-f" data-f="in" autocomplete="off">' +
         '<p class="ya-sub">' + esc(opts.sub || 'Log in to save your stars and join the leaderboard 🏆') + '</p>' +
-        '<label class="ya-lbl" for="ya-user">Username</label>' +
-        '<input class="ya-in" id="ya-user" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="e.g. phuong10">' +
-        '<label class="ya-lbl">PIN</label>' +
-        '<div class="ya-pin">' + [0, 1, 2, 3].map(function (i) {
-          return '<input inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN ' + (i + 1) + '" data-i="' + i + '">';
-        }).join('') + '</div>' +
+        '<label class="ya-lbl" for="ya-user">Nickname</label>' +
+        '<input class="ya-in" id="ya-user" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="20" placeholder="Your nickname">' +
+        '<label class="ya-lbl">PIN</label>' + pinRow('in', 'PIN') +
         '<p class="ya-err" role="alert"></p>' +
         '<button class="ya-btn" type="submit">Let’s go 🚀</button>' +
-        '<p class="ya-hint">Chưa có tên đăng nhập / quên PIN? Em nhắn cô nhé 💬</p>' +
-        '</form>';
-      var form = ov.querySelector('form'), user = ov.querySelector('#ya-user'), err = ov.querySelector('.ya-err'),
-        pins = [].slice.call(ov.querySelectorAll('.ya-pin input')), btn = ov.querySelector('.ya-btn'), pinBox = ov.querySelector('.ya-pin');
-      var saved = LS.get(KEY) || {}, lastUser = (saved.me && saved.me.user) || saved.last;
-      if (lastUser) user.value = lastUser;
-      try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
-      pins.forEach(function (p, i) {
-        p.addEventListener('input', function () {
-          var d = p.value.replace(/\D/g, '');
-          if (d.length > 1) { // dán cả mã
-            d.split('').slice(0, 4 - i).forEach(function (c, j) { pins[i + j].value = c; });
-            (pins[Math.min(3, i + d.length)] || p).focus();
-          } else {
-            p.value = d;
-            if (d && pins[i + 1]) pins[i + 1].focus();
-          }
-          if (pins.every(function (x) { return x.value; })) form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
+        '<p class="ya-hint">Chưa có tài khoản? Bấm <b>✨ Tạo tài khoản</b> ở trên. Quên PIN thì nhắn cô nhé 💬</p>' +
+        '</form>' +
+        // ---- tạo tài khoản ----
+        '<form class="ya-f" data-f="new" autocomplete="off" hidden>' +
+        '<p class="ya-sub">Tự đặt nickname và mã PIN của em nhé 🎮</p>' +
+        '<label class="ya-lbl" for="ya-nick">Nickname <small>(hiện trên bảng xếp hạng)</small></label>' +
+        '<input class="ya-in" id="ya-nick" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="VD: Sói Con, MinhAnh09">' +
+        '<label class="ya-lbl" for="ya-full">Họ và tên thật <small>(chỉ cô thấy)</small></label>' +
+        '<input class="ya-in" id="ya-full" autocomplete="name" maxlength="60" placeholder="VD: Nguyễn Minh Anh">' +
+        '<label class="ya-lbl" for="ya-cls">Lớp</label>' +
+        '<input class="ya-in" id="ya-cls" autocapitalize="characters" maxlength="20" placeholder="' + esc(opts.clsHint || 'VD: KET01') + '">' +
+        '<label class="ya-lbl">Mã PIN 4 số <small>(em tự nghĩ, nhớ kĩ nhé)</small></label>' + pinRow('p1', 'PIN') +
+        '<label class="ya-lbl">Nhập lại mã PIN</label>' + pinRow('p2', 'Nhập lại PIN') +
+        '<p class="ya-err" role="alert"></p>' +
+        '<button class="ya-btn" type="submit">Tạo tài khoản ✨</button>' +
+        '<p class="ya-hint">Tên thật giúp cô biết em là ai. Bạn bè chỉ thấy nickname 😉</p>' +
+        '</form></div>';
+      var forms = { 'in': ov.querySelector('[data-f="in"]'), 'new': ov.querySelector('[data-f="new"]') };
+      var user = ov.querySelector('#ya-user');
+      var pins = function (g) { return [].slice.call(ov.querySelectorAll('.ya-pin[data-g="' + g + '"] input')); };
+      var pinVal = function (g) { return pins(g).map(function (x) { return x.value; }).join(''); };
+      var clearPins = function (g) { pins(g).forEach(function (x) { x.value = ''; }); };
+      var shake = function (g) { var b = ov.querySelector('.ya-pin[data-g="' + g + '"]'); b.classList.remove('ya-shake'); void b.offsetWidth; b.classList.add('ya-shake'); };
+      var submit = function (f) { f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event('submit', { cancelable: true })); };
+      // ô PIN: tự nhảy ô, dán cả mã, xoá lùi; đủ 4 số → (đăng nhập) gửi luôn / (tạo) sang ô nhập lại
+      ['in', 'p1', 'p2'].forEach(function (g) {
+        var ps = pins(g);
+        ps.forEach(function (p, i) {
+          p.addEventListener('input', function () {
+            var d = p.value.replace(/\D/g, '');
+            if (d.length > 1) { d.split('').slice(0, 4 - i).forEach(function (c, j) { ps[i + j].value = c; }); (ps[Math.min(3, i + d.length)] || p).focus(); }
+            else { p.value = d; if (d && ps[i + 1]) ps[i + 1].focus(); }
+            if (ps.every(function (x) { return x.value; })) {
+              if (g === 'in') submit(forms['in']);
+              else if (g === 'p1') pins('p2')[0].focus();
+              else submit(forms['new']);
+            }
+          });
+          p.addEventListener('keydown', function (e) { if (e.key === 'Backspace' && !p.value && ps[i - 1]) { ps[i - 1].value = ''; ps[i - 1].focus(); } });
+          p.addEventListener('focus', function () { p.select && p.select(); });
         });
-        p.addEventListener('keydown', function (e) {
-          if (e.key === 'Backspace' && !p.value && pins[i - 1]) { pins[i - 1].value = ''; pins[i - 1].focus(); }
-        });
-        p.addEventListener('focus', function () { p.select && p.select(); });
       });
-      user.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); pins[0].focus(); } });
-      setTimeout(function () { (user.value ? pins[0] : user).focus(); }, 60);
+      var mode = function (m) {
+        [].forEach.call(ov.querySelectorAll('.ya-mode button'), function (b) { b.classList.toggle('on', b.dataset.m === m); });
+        forms['in'].hidden = m !== 'in'; forms['new'].hidden = m !== 'new';
+        setTimeout(function () { (m === 'in' ? (user.value ? pins('in')[0] : user) : ov.querySelector('#ya-nick')).focus(); }, 40);
+      };
+      ov.querySelector('.ya-mode').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) mode(b.dataset.m); });
+      var saved = LS.get(KEY) || {}, lastUser = (saved.me && saved.me.name) || saved.last;
+      if (lastUser) user.value = lastUser;
+      user.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); pins('in')[0].focus(); } });
+      ['#ya-nick', '#ya-full', '#ya-cls'].forEach(function (id, i, arr) {
+        ov.querySelector(id).addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter') return; e.preventDefault();
+          (arr[i + 1] ? ov.querySelector(arr[i + 1]) : pins('p1')[0]).focus();
+        });
+      });
+      try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
+      mode(opts.mode === 'new' ? 'new' : 'in');
       var busy = false;
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (busy) return;
-        var pin = pins.map(function (x) { return x.value; }).join('');
-        if (!user.value.trim()) { err.textContent = 'Em nhập tên đăng nhập nhé'; user.focus(); return; }
-        if (pin.length !== 4) { err.textContent = 'PIN có 4 số nhé'; (pins.filter(function (x) { return !x.value; })[0] || pins[0]).focus(); return; }
+      var done = function (j) {
+        LS.set(KEY, { token: j.token, me: j.me, at: Date.now() });
+        ov.remove(); loginOpen = null;
+        try { document.documentElement.style.overflow = ''; if (document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); } catch (_) {}
+        resolve(j.me);
+      };
+      var run = function (f, body, label, onFail) {
+        var err = f.querySelector('.ya-err'), btn = f.querySelector('.ya-btn');
         busy = true; btn.disabled = true; btn.textContent = '…'; err.textContent = '';
-        post({ action: 'login', user: user.value, pin: pin }).then(function (j) {
-          if (!j.ok) throw new Error(j.error || 'Đăng nhập không được');
-          LS.set(KEY, { token: j.token, me: j.me, at: Date.now() });
-          ov.remove(); loginOpen = null;
-          try { document.documentElement.style.overflow = ''; if (document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); } catch (_) {}
-          resolve(j.me);
+        post(body).then(function (j) {
+          if (!j.ok) { var e = new Error(j.error || 'Không được rồi, em thử lại nhé'); e.field = j.field; throw e; }
+          done(j);
         }).catch(function (ex) {
           err.textContent = /fetch|network|Failed/i.test(ex.message) ? 'Mạng yếu, em thử lại nhé' : ex.message;
-          pins.forEach(function (x) { x.value = ''; });
-          pinBox.classList.remove('ya-shake'); void pinBox.offsetWidth; pinBox.classList.add('ya-shake');
-          pins[0].focus();
-        }).then(function () { busy = false; btn.disabled = false; btn.textContent = 'Let’s go 🚀'; });
+          onFail(ex.field);
+        }).then(function () { busy = false; btn.disabled = false; btn.textContent = label; });
+      };
+      forms['in'].addEventListener('submit', function (e) {
+        e.preventDefault(); if (busy) return;
+        var err = forms['in'].querySelector('.ya-err'), pin = pinVal('in');
+        if (!user.value.trim()) { err.textContent = 'Em nhập nickname nhé'; user.focus(); return; }
+        if (pin.length !== 4) { err.textContent = 'PIN có 4 số nhé'; (pins('in').filter(function (x) { return !x.value; })[0] || pins('in')[0]).focus(); return; }
+        run(forms['in'], { action: 'login', user: user.value, pin: pin }, 'Let’s go 🚀', function () { clearPins('in'); shake('in'); pins('in')[0].focus(); });
+      });
+      forms['new'].addEventListener('submit', function (e) {
+        e.preventDefault(); if (busy) return;
+        var f = forms['new'], err = f.querySelector('.ya-err');
+        var nick = f.querySelector('#ya-nick'), full = f.querySelector('#ya-full'), cls = f.querySelector('#ya-cls');
+        var p1 = pinVal('p1'), p2 = pinVal('p2');
+        var bad = function (msg, el) { err.textContent = msg; el.focus(); };
+        if (nick.value.trim().length < 3) return bad('Nickname cần ít nhất 3 chữ nhé', nick);
+        if (full.value.trim().split(/\s+/).length < 2) return bad('Em nhập đủ họ và tên thật nhé', full);
+        if (!cls.value.trim()) return bad('Em nhập lớp nhé', cls);
+        if (p1.length !== 4) return bad('Mã PIN có 4 số nhé', pins('p1').filter(function (x) { return !x.value; })[0] || pins('p1')[0]);
+        if (p1 !== p2) { clearPins('p2'); shake('p2'); return bad('Hai mã PIN chưa giống nhau, em nhập lại nhé', pins('p2')[0]); }
+        run(f, { action: 'register', nick: nick.value, full: full.value, cls: cls.value, pin: p1 }, 'Tạo tài khoản ✨', function (field) {
+          if (field === 'pin') { clearPins('p1'); clearPins('p2'); shake('p1'); pins('p1')[0].focus(); }
+          else if (field === 'nick') nick.focus(); else if (field === 'full') full.focus(); else if (field === 'cls') cls.focus();
+        });
       });
     });
     return loginOpen;
@@ -251,7 +310,7 @@
     function render() {
       if (!data) { sc.innerHTML = '<div class="ya-spin"></div>'; pin.innerHTML = ''; return; }
       var list = data[tab] || [];
-      if (!list.length) { sc.innerHTML = '<p class="ya-msg">Chưa có ai trên bảng 🌱</p>'; pin.innerHTML = ''; return; }
+      if (!list.length) { sc.innerHTML = '<p class="ya-msg">Chưa có ai trên bảng 🌱</p>'; pin.innerHTML = data.pending ? '<p class="ya-msg">⏳ Cô đang kiểm tra họ tên của em. Ghép xong em sẽ lên bảng nhé!</p>' : ''; return; }
       var top = list.filter(function (o) { return o.xp > 0; }).slice(0, 3);
       var html = '';
       if (top.length) {
@@ -267,7 +326,7 @@
       if (tab === 'week') html += '<p class="ya-foot">Mỗi bài: % đúng + sửa đúng lần 2 + tập trung không rời trang + 🎯 đúng hết</p>';
       sc.innerHTML = html;
       var mine = list.filter(function (o) { return o.me; })[0];
-      pin.innerHTML = mine ? row(mine) : '';
+      pin.innerHTML = mine ? row(mine) : data.pending ? '<p class="ya-msg" style="padding:10px 4px">⏳ Cô đang kiểm tra họ tên của em. Ghép xong em sẽ lên bảng nhé!</p>' : '';
     }
     render();
     fetch(SCRIPT_URL + '?action=board&token=' + encodeURIComponent(token()))
@@ -305,7 +364,7 @@
   }
   function authFailed(opts) {
     var a = auth();
-    if (a) LS.set(KEY, { token: '', me: null, last: a.me && a.me.user });
+    if (a) LS.set(KEY, { token: '', me: null, last: a.me && (a.me.name || a.me.user) });
     return loginScreen(Object.assign({}, opts || {}, { sub: 'Em đăng nhập lại để gửi bài nhé 📨' }));
   }
   function logout() { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); }
