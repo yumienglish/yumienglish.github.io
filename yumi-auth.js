@@ -202,7 +202,7 @@
           if (!j.ok) throw new Error(j.error || 'Đăng nhập không được');
           LS.set(KEY, { token: j.token, me: j.me, at: Date.now() });
           ov.remove(); loginOpen = null;
-          try { document.documentElement.style.overflow = ''; } catch (_) {}
+          try { document.documentElement.style.overflow = ''; if (document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); } catch (_) {}
           resolve(j.me);
         }).catch(function (ex) {
           err.textContent = /fetch|network|Failed/i.test(ex.message) ? 'Mạng yếu, em thử lại nhé' : ex.message;
@@ -306,7 +306,7 @@
   function authFailed(opts) {
     var a = auth();
     if (a) LS.set(KEY, { token: '', me: null, last: a.me && a.me.user });
-    return loginScreen(Object.assign({ sub: 'Em đăng nhập lại để gửi bài nhé' }, opts || {}));
+    return loginScreen(Object.assign({}, opts || {}, { sub: 'Em đăng nhập lại để gửi bài nhé 📨' }));
   }
   function logout() { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); }
 
