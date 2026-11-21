@@ -1,22 +1,10 @@
-/* Bộ nhân vật TEEN (PET + B2 First). Sinh tự động bằng build.mjs – giá/nguồn phải khớp AV_CATALOG trong Code.gs. */
-YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 20, w: 380, h: 380 }, defaults: { bm: { hair: 'h1' }, bf: { hair: 'h2' } }, items: {
- "body": {
-  "slot": "body",
-  "name": "Character",
-  "src": "free",
-  "hide": true,
-  "img": "body.webp",
-  "x": 0,
-  "y": 0,
-  "w": 1024,
-  "h": 1536
- },
+/* Bộ nhân vật TEEN v2 (PET + B2 First): thân nam/nữ, đồ riêng từng giới (g), đồ dùng chung, đồ cũ (hide). Sinh bằng build2.mjs – khớp AV_CATALOG trong Code.gs. */
+YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 20, w: 380, h: 380 }, defaults: { bm: { hair: 'mh1', top: 'mt1', bottom: 'mb1', shoes: 'ms1' }, bf: { hair: 'fh1', top: 'ft1', bottom: 'fb1', shoes: 'fs1' } }, items: {
  "bm": {
   "slot": "body",
   "name": "Boy",
   "src": "free",
-  "rar": "c",
-  "price": 0,
+  "g": "m",
   "img": "bm.webp",
   "x": 0,
   "y": 0,
@@ -27,73 +15,443 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "slot": "body",
   "name": "Girl",
   "src": "free",
-  "rar": "c",
-  "price": 0,
+  "g": "f",
   "img": "bf.webp",
   "x": 0,
   "y": 0,
   "w": 1024,
   "h": 1536
  },
- "h1": {
+ "body": {
+  "slot": "body",
+  "name": "Character",
+  "src": "free",
+  "hide": 1,
+  "img": "body.webp",
+  "x": 0,
+  "y": 0,
+  "w": 1024,
+  "h": 1536
+ },
+ "mh1": {
   "slot": "hair",
   "name": "Messy short hair",
   "src": "free",
   "rar": "c",
   "price": 0,
-  "img": "h1.webp",
-  "x": 378,
-  "y": 58,
-  "w": 263,
-  "h": 189
+  "g": "m",
+  "rel": "",
+  "img": "mh1.webp",
+  "x": 381,
+  "y": 53,
+  "w": 258,
+  "h": 186,
+  "thumb": "th-mh1.webp"
  },
- "h2": {
+ "mh2": {
   "slot": "hair",
-  "name": "Long hair with bangs",
+  "name": "Neat side part",
   "src": "free",
   "rar": "c",
   "price": 0,
-  "img": "h2.webp",
-  "x": 323,
-  "y": 80,
-  "w": 374,
-  "h": 525
+  "g": "m",
+  "rel": "",
+  "img": "mh2.webp",
+  "x": 393,
+  "y": 56,
+  "w": 237,
+  "h": 157,
+  "thumb": "th-mh2.webp"
  },
- "h3": {
-  "slot": "hair",
-  "name": "High ponytail",
-  "src": "free",
-  "rar": "c",
-  "price": 0,
-  "img": "h3.webp",
-  "x": 398,
-  "y": 22,
-  "w": 300,
-  "h": 377
- },
- "h4": {
+ "mh3": {
   "slot": "hair",
   "name": "Electric blue hair",
   "src": "shop",
   "rar": "r",
   "price": 180,
-  "img": "h4.webp",
-  "x": 366,
-  "y": 51,
-  "w": 288,
-  "h": 196
+  "g": "m",
+  "rel": "",
+  "img": "mh3.webp",
+  "x": 377,
+  "y": 43,
+  "w": 268,
+  "h": 195,
+  "thumb": "th-mh3.webp"
  },
- "h5": {
+ "mh4": {
+  "slot": "hair",
+  "name": "Silver-tip undercut",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "m",
+  "rel": "2026-11-23",
+  "img": "mh4.webp",
+  "x": 390,
+  "y": 36,
+  "w": 233,
+  "h": 169,
+  "thumb": "th-mh4.webp"
+ },
+ "mt1": {
+  "slot": "top",
+  "name": "Star T-shirt",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "m",
+  "rel": "",
+  "img": "mt1.webp",
+  "x": 228,
+  "y": 325,
+  "w": 545,
+  "h": 639,
+  "thumb": "th-mt1.webp"
+ },
+ "mt2": {
+  "slot": "top",
+  "name": "Neon hoodie",
+  "src": "shop",
+  "rar": "r",
+  "price": 260,
+  "g": "m",
+  "rel": "",
+  "img": "mt2.webp",
+  "x": 243,
+  "y": 280,
+  "w": 535,
+  "h": 491,
+  "thumb": "th-mt2.webp"
+ },
+ "mt3": {
+  "slot": "top",
+  "name": "Varsity jacket",
+  "src": "shop",
+  "rar": "c",
+  "price": 220,
+  "g": "m",
+  "rel": "2026-11-23",
+  "img": "mt3.webp",
+  "x": 256,
+  "y": 296,
+  "w": 509,
+  "h": 464,
+  "thumb": "th-mt3.webp"
+ },
+ "mb1": {
+  "slot": "bottom",
+  "name": "Blue jeans",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "m",
+  "rel": "",
+  "img": "mb1.webp",
+  "x": 247,
+  "y": 597,
+  "w": 509,
+  "h": 863,
+  "thumb": "th-mb1.webp"
+ },
+ "mb2": {
+  "slot": "bottom",
+  "name": "Black cargo pants",
+  "src": "shop",
+  "rar": "c",
+  "price": 200,
+  "g": "m",
+  "rel": "",
+  "img": "mb2.webp",
+  "x": 315,
+  "y": 656,
+  "w": 391,
+  "h": 796,
+  "thumb": "th-mb2.webp"
+ },
+ "ms1": {
+  "slot": "shoes",
+  "name": "White sneakers",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "m",
+  "rel": "",
+  "img": "ms1.webp",
+  "x": 314,
+  "y": 1247,
+  "w": 395,
+  "h": 204,
+  "thumb": "th-ms1.webp"
+ },
+ "ms2": {
+  "slot": "shoes",
+  "name": "Neon high-tops",
+  "src": "shop",
+  "rar": "r",
+  "price": 240,
+  "g": "m",
+  "rel": "",
+  "img": "ms2.webp",
+  "x": 306,
+  "y": 1266,
+  "w": 411,
+  "h": 186,
+  "thumb": "th-ms2.webp"
+ },
+ "mset1": {
+  "slot": "set",
+  "name": "Esports team kit",
+  "src": "shop",
+  "rar": "e",
+  "price": 450,
+  "g": "m",
+  "rel": "",
+  "img": "mset1.webp",
+  "x": 319,
+  "y": 320,
+  "w": 386,
+  "h": 1145,
+  "thumb": "th-mset1.webp"
+ },
+ "mhat1": {
+  "slot": "hat",
+  "name": "Backwards cap",
+  "src": "shop",
+  "rar": "c",
+  "price": 160,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "mhat1.webp",
+  "x": 416,
+  "y": 46,
+  "w": 232,
+  "h": 221,
+  "thumb": "th-mhat1.webp"
+ },
+ "mset2": {
+  "slot": "set",
+  "name": "Galaxy idol suit",
+  "src": "chest",
+  "rar": "x",
+  "price": 0,
+  "g": "m",
+  "rel": "",
+  "img": "mset2.webp",
+  "x": 257,
+  "y": 309,
+  "w": 508,
+  "h": 1120,
+  "thumb": "th-mset2.webp"
+ },
+ "fh1": {
+  "slot": "hair",
+  "name": "Long hair with bangs",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fh1.webp",
+  "x": 338,
+  "y": 75,
+  "w": 345,
+  "h": 540,
+  "thumb": "th-fh1.webp"
+ },
+ "fh2": {
+  "slot": "hair",
+  "name": "High ponytail",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fh2.webp",
+  "x": 400,
+  "y": 35,
+  "w": 291,
+  "h": 420,
+  "thumb": "th-fh2.webp"
+ },
+ "fh3": {
   "slot": "hair",
   "name": "Pink space buns",
   "src": "shop",
   "rar": "r",
   "price": 200,
-  "img": "h5.webp",
-  "x": 361,
-  "y": 70,
-  "w": 299,
-  "h": 694
+  "g": "f",
+  "rel": "",
+  "img": "fh3.webp",
+  "x": 369,
+  "y": 58,
+  "w": 288,
+  "h": 210,
+  "thumb": "th-fh3.webp"
+ },
+ "ft1": {
+  "slot": "top",
+  "name": "Star T-shirt",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "ft1.webp",
+  "x": 371,
+  "y": 247,
+  "w": 413,
+  "h": 607,
+  "thumb": "th-ft1.webp"
+ },
+ "ft2": {
+  "slot": "top",
+  "name": "Cropped neon hoodie",
+  "src": "shop",
+  "rar": "r",
+  "price": 260,
+  "g": "f",
+  "rel": "",
+  "img": "ft2.webp",
+  "x": 268,
+  "y": 304,
+  "w": 484,
+  "h": 456,
+  "thumb": "th-ft2.webp"
+ },
+ "fb1": {
+  "slot": "bottom",
+  "name": "Denim skirt",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fb1.webp",
+  "x": 328,
+  "y": 660,
+  "w": 444,
+  "h": 435,
+  "thumb": "th-fb1.webp"
+ },
+ "fd1": {
+  "slot": "dress",
+  "name": "Pastel pleated dress",
+  "src": "shop",
+  "rar": "r",
+  "price": 320,
+  "g": "f",
+  "rel": "",
+  "img": "fd1.webp",
+  "x": 257,
+  "y": 328,
+  "w": 442,
+  "h": 571,
+  "thumb": "th-fd1.webp"
+ },
+ "fset1": {
+  "slot": "set",
+  "name": "Esports team kit",
+  "src": "shop",
+  "rar": "e",
+  "price": 450,
+  "g": "f",
+  "rel": "",
+  "img": "fset1.webp",
+  "x": 250,
+  "y": 333,
+  "w": 451,
+  "h": 1118,
+  "thumb": "th-fset1.webp"
+ },
+ "fs1": {
+  "slot": "shoes",
+  "name": "White sneakers",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fs1.webp",
+  "x": 324,
+  "y": 1321,
+  "w": 376,
+  "h": 128,
+  "thumb": "th-fs1.webp"
+ },
+ "fs2": {
+  "slot": "shoes",
+  "name": "Pastel platform sneakers",
+  "src": "shop",
+  "rar": "r",
+  "price": 240,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "fs2.webp",
+  "x": 314,
+  "y": 1292,
+  "w": 395,
+  "h": 170,
+  "thumb": "th-fs2.webp"
+ },
+ "fhat1": {
+  "slot": "hat",
+  "name": "Red beret",
+  "src": "shop",
+  "rar": "c",
+  "price": 160,
+  "g": "f",
+  "rel": "2026-11-23",
+  "img": "fhat1.webp",
+  "x": 381,
+  "y": 43,
+  "w": 198,
+  "h": 291,
+  "thumb": "th-fhat1.webp"
+ },
+ "fbag1": {
+  "slot": "bag",
+  "name": "Mini backpack",
+  "src": "shop",
+  "rar": "c",
+  "price": 180,
+  "g": "f",
+  "rel": "2026-11-23",
+  "img": "fbag1.webp",
+  "x": 325,
+  "y": 346,
+  "w": 131,
+  "h": 365,
+  "thumb": "th-fbag1.webp"
+ },
+ "fhat2": {
+  "slot": "hat",
+  "name": "Royal crown",
+  "src": "chest",
+  "rar": "x",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fhat2.webp",
+  "x": 454,
+  "y": 18,
+  "w": 186,
+  "h": 316,
+  "thumb": "th-fhat2.webp"
+ },
+ "fset2": {
+  "slot": "set",
+  "name": "Galaxy idol dress",
+  "src": "chest",
+  "rar": "x",
+  "price": 0,
+  "g": "f",
+  "rel": "",
+  "img": "fset2.webp",
+  "x": 299,
+  "y": 319,
+  "w": 478,
+  "h": 790,
+  "thumb": "th-fset2.webp"
  },
  "f1": {
   "slot": "face",
@@ -105,7 +463,23 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 430,
   "y": 168,
   "w": 165,
-  "h": 129
+  "h": 129,
+  "imgs": {
+   "m": {
+    "img": "f1-m.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   },
+   "f": {
+    "img": "f1-f.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   }
+  }
  },
  "f2": {
   "slot": "face",
@@ -117,7 +491,23 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 430,
   "y": 168,
   "w": 165,
-  "h": 129
+  "h": 129,
+  "imgs": {
+   "m": {
+    "img": "f2-m.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   },
+   "f": {
+    "img": "f2-f.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   }
+  }
  },
  "f3": {
   "slot": "face",
@@ -129,7 +519,88 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 430,
   "y": 168,
   "w": 165,
-  "h": 129
+  "h": 129,
+  "imgs": {
+   "m": {
+    "img": "f3-m.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   },
+   "f": {
+    "img": "f3-f.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   }
+  }
+ },
+ "h1": {
+  "slot": "hair",
+  "name": "Messy short hair",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "img": "h1.webp",
+  "x": 378,
+  "y": 58,
+  "w": 263,
+  "h": 189,
+  "hide": 1
+ },
+ "h2": {
+  "slot": "hair",
+  "name": "Long hair with bangs",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "img": "h2.webp",
+  "x": 323,
+  "y": 80,
+  "w": 374,
+  "h": 525,
+  "hide": 1
+ },
+ "h3": {
+  "slot": "hair",
+  "name": "High ponytail",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "img": "h3.webp",
+  "x": 398,
+  "y": 22,
+  "w": 300,
+  "h": 377,
+  "hide": 1
+ },
+ "h4": {
+  "slot": "hair",
+  "name": "Electric blue hair",
+  "src": "shop",
+  "rar": "r",
+  "price": 180,
+  "img": "h4.webp",
+  "x": 366,
+  "y": 51,
+  "w": 288,
+  "h": 196,
+  "hide": 1
+ },
+ "h5": {
+  "slot": "hair",
+  "name": "Pink space buns",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "img": "h5.webp",
+  "x": 361,
+  "y": 70,
+  "w": 299,
+  "h": 694,
+  "hide": 1
  },
  "t1": {
   "slot": "top",
@@ -141,7 +612,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 357,
   "y": 335,
   "w": 309,
-  "h": 353
+  "h": 353,
+  "hide": 1
  },
  "t2": {
   "slot": "top",
@@ -153,7 +625,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 269,
   "y": 286,
   "w": 485,
-  "h": 462
+  "h": 462,
+  "hide": 1
  },
  "t3": {
   "slot": "top",
@@ -165,7 +638,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 270,
   "y": 310,
   "w": 484,
-  "h": 434
+  "h": 434,
+  "hide": 1
  },
  "b1": {
   "slot": "bottom",
@@ -177,7 +651,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 322,
   "y": 659,
   "w": 378,
-  "h": 793
+  "h": 793,
+  "hide": 1
  },
  "b2": {
   "slot": "bottom",
@@ -189,7 +664,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 318,
   "y": 660,
   "w": 385,
-  "h": 791
+  "h": 791,
+  "hide": 1
  },
  "d1": {
   "slot": "dress",
@@ -201,7 +677,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 318,
   "y": 330,
   "w": 386,
-  "h": 946
+  "h": 946,
+  "hide": 1
  },
  "st1": {
   "slot": "set",
@@ -213,7 +690,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 338,
   "y": 334,
   "w": 339,
-  "h": 1006
+  "h": 1006,
+  "hide": 1
  },
  "s1": {
   "slot": "shoes",
@@ -225,7 +703,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 323,
   "y": 1322,
   "w": 378,
-  "h": 128
+  "h": 128,
+  "hide": 1
  },
  "s2": {
   "slot": "shoes",
@@ -237,7 +716,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 318,
   "y": 1267,
   "w": 385,
-  "h": 189
+  "h": 189,
+  "hide": 1
  },
  "c1": {
   "slot": "hat",
@@ -249,7 +729,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 393,
   "y": 31,
   "w": 272,
-  "h": 212
+  "h": 212,
+  "hide": 1
  },
  "g1": {
   "slot": "glasses",
@@ -261,7 +742,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 418,
   "y": 195,
   "w": 190,
-  "h": 63
+  "h": 63,
+  "thumb": "th-g1.webp"
  },
  "bg1": {
   "slot": "bag",
@@ -273,7 +755,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 357,
   "y": 439,
   "w": 89,
-  "h": 220
+  "h": 220,
+  "hide": 1
  },
  "hd1": {
   "slot": "hand",
@@ -285,7 +768,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 693,
   "y": 672,
   "w": 110,
-  "h": 193
+  "h": 193,
+  "thumb": "th-hd1.webp"
  },
  "p1": {
   "slot": "pet",
@@ -297,7 +781,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 110,
   "y": 1154,
   "w": 286,
-  "h": 297
+  "h": 297,
+  "thumb": "th-p1.webp"
  },
  "pa1": {
   "slot": "petacc",
@@ -309,7 +794,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 94,
   "y": 1316,
   "w": 243,
-  "h": 119
+  "h": 119,
+  "thumb": "th-pa1.webp"
  },
  "w1": {
   "slot": "wings",
@@ -321,7 +807,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 14,
   "y": 225,
   "w": 996,
-  "h": 713
+  "h": 713,
+  "thumb": "th-w1.webp"
  },
  "st2": {
   "slot": "set",
@@ -333,7 +820,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 271,
   "y": 316,
   "w": 488,
-  "h": 1084
+  "h": 1084,
+  "hide": 1
  },
  "c2": {
   "slot": "hat",
@@ -345,7 +833,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 453,
   "y": 2,
   "w": 141,
-  "h": 98
+  "h": 98,
+  "hide": 1
  },
  "p2": {
   "slot": "pet",
@@ -357,7 +846,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 119,
   "y": 1159,
   "w": 276,
-  "h": 291
+  "h": 291,
+  "thumb": "th-p2.webp"
  },
  "hd2": {
   "slot": "hand",
@@ -369,7 +859,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 612,
   "y": 649,
   "w": 199,
-  "h": 661
+  "h": 661,
+  "thumb": "th-hd2.webp"
  },
  "pa2": {
   "slot": "petacc",
@@ -381,6 +872,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 74,
   "y": 1287,
   "w": 321,
-  "h": 163
+  "h": 163,
+  "thumb": "th-pa2.webp"
  }
 } });

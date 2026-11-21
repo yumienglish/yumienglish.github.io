@@ -50,6 +50,9 @@
     if ((slot === 'top' || slot === 'bottom') && o[slot]) { delete o.dress; delete o.set; }
     return o;
   }
+  function genderOf(cat, o) { var b = o && o.body && cat.items[o.body]; return b && b.g || ''; } // 'm' | 'f' | ''
+  function fitG(it, g) { return !it.g || !g || it.g === g; }
+  function variant(it, g) { var v = it.imgs && it.imgs[g]; return v ? Object.assign({}, it, v) : it; } // biểu cảm: hình riêng theo thân
   function withDefaults(cat, o) { // ô trống bắt buộc (người, mặt) → món miễn phí đầu tiên
     o = Object.assign({}, o);
     ['body'].forEach(function (slot) { // mặt gốc có sẵn trong người → ô Mặt để trống = mặc định
@@ -62,7 +65,8 @@
     opts = opts || {};
     o = withDefaults(cat, o || {});
     var W = cat.w, H = cat.h, box = opts.crop === 'head' ? (cat.head || { x: W * 0.3, y: 0, w: W * 0.4, h: W * 0.4 }) : { x: 0, y: 0, w: W, h: H };
-    var layers = Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]]; return it ? it : null; }).filter(Boolean).map(function (it) {
+    var g = genderOf(cat, o);
+    var layers = Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]]; return it ? variant(it, g) : null; }).filter(Boolean).map(function (it) {
       return '<img alt="" draggable="false" src="' + esc(BASE + cat.dir + '/' + it.img) + '" style="position:absolute;left:' + ((it.x - box.x) / box.w * 100) + '%;top:' +
         ((it.y - box.y) / box.h * 100) + '%;width:' + (it.w / box.w * 100) + '%;height:' + (it.h / box.h * 100) + '%">';
     }).join('');
@@ -109,6 +113,10 @@
     '.yw-r-r{border-color:#4fc3f7}.yw-r-e{border-color:#b388ff}.yw-r-x{border-color:#ffd54f;background:linear-gradient(160deg,rgba(255,213,79,.18),rgba(255,255,255,.04))}' +
     '.yw-buy{margin-top:6px;border:0;border-radius:10px;padding:6px 8px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;width:100%}' +
     '.yw-buy[disabled]{opacity:.45;cursor:default}' +
+    '.yw-it.lock{opacity:.55;cursor:default}.yw-it.lock .yw-th{filter:grayscale(.6)}.yw-need{display:block;margin-top:6px;font-size:12px;font-weight:700;color:#ffcf3f}' +
+    '.yw-new{position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#ff2e88,#ffb300);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px}' +
+    '.yw-acts{display:flex;gap:6px;margin-top:6px}.yw-acts button{flex:1;border:0;border-radius:10px;padding:7px 4px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer}' +
+    '.yw-acts .yw-tryb{background:rgba(255,255,255,.16);color:inherit}.yw-acts .yw-buyb{background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300}' +
     '.yw-note{font-size:13px;opacity:.8;margin:4px 0 12px}' +
     '.yw-chest{text-align:center;padding:10px}' +
     '.yw-chest .yw-box{font-size:96px;line-height:1;display:inline-block;filter:drop-shadow(0 0 18px rgba(255,213,79,.7))}' +
@@ -129,8 +137,8 @@
     body.token = A().token();
     return fetch(A().url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
   }
-  function wallet(style) {
-    return fetch(A().url + '?action=wallet&style=' + encodeURIComponent(style) + '&token=' + encodeURIComponent(A().token())).then(function (r) { return r.json(); });
+  function wallet(style, g) {
+    return fetch(A().url + '?action=wallet&style=' + encodeURIComponent(style) + '&g=' + encodeURIComponent(g || '') + '&token=' + encodeURIComponent(A().token())).then(function (r) { return r.json(); });
   }
   function toast(msg) { var t = document.createElement('div'); t.className = 'yw-toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600); }
   function myOutfit(style) {
@@ -151,13 +159,21 @@
         ['bg', 'text', 'acc', 'acc2', 'font', 'head'].forEach(function (k) { if (th[k]) ov.style.setProperty('--ya-' + k, th[k]); });
         document.body.appendChild(ov);
         try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
-        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null;
+        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, sel = '';
         var saved = myOutfit(style) || {}, cur = withDefaults(cat, saved);
-        if (creating) ['hair', 'top', 'bottom', 'shoes'].forEach(function (s) { // tạo lần đầu: mặc sẵn đồ cơ bản, em đổi tuỳ thích
-          if (cur[s]) return; var id = Object.keys(cat.items).filter(function (k) { return cat.items[k].slot === s && cat.items[k].src === 'free'; })[0]; if (id) cur[s] = id; });
+        var G = function () { return genderOf(cat, cur); };
+        // đổi thân (Boy/Girl) → bỏ đồ khác giới, mặc đồ cơ bản của giới mới cho ô trống (lúc tạo: thay hết)
+        var applyBody = function (all) {
+          var g = G(); Object.keys(cur).forEach(function (s) { var it = cat.items[cur[s]]; if (s !== 'body' && (!it || it.hide || !fitG(it, g))) delete cur[s]; });
+          var d = cat.defaults && cat.defaults[cur.body]; if (d) Object.keys(d).forEach(function (k) { if (all || !cur[k]) cur[k] = d[k]; });
+          cur = normalize(cur, 'top');
+        };
+        if (creating || (cur.body && cat.items[cur.body] && cat.items[cur.body].hide)) { if (!cur.body || cat.items[cur.body].hide) cur.body = withDefaults(cat, {}).body; applyBody(true); }
         var items = function (f) { return Object.keys(cat.items).filter(function (id) { return f(cat.items[id], id); }); };
-        var owns = function (id) { var it = cat.items[id]; return !it.hide && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
-        var thumb = function (it) { return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
+        var vis = function (it) { return !it.hide && (it.slot === 'body' || fitG(it, G())); }; // Boy/Girl luôn chọn được
+        var owns = function (id) { var it = cat.items[id]; return vis(it) && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
+        var thumb = function (it) { it = variant(it, G()); return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
+        var refetch = function () { wallet(style, G()).then(function (j) { if (j.ok) { W = j; draw(); } }).catch(function () {}); };
         function close(v) { ov.remove(); try { document.documentElement.style.overflow = ''; } catch (_) {} resolve(v); }
         function draw() {
           var dirty = JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved));
@@ -169,7 +185,7 @@
           if (!creating) h += '<div class="yw-tabs"><button data-t="wardrobe"' + (tab === 'wardrobe' ? ' class="on"' : '') + '>👕 Wardrobe</button><button data-t="shop"' + (tab === 'shop' ? ' class="on"' : '') +
             '>🛍️ Shop</button><button data-t="chest"' + (tab === 'chest' ? ' class="on"' : '') + '>💎 Chest</button></div>';
           if (tab === 'wardrobe') {
-            var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free' && !it.hide); }).length; });
+            var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free' && vis(it)); }).length; });
             if (!slots.some(function (s) { return s[0] === slot; }) && slots[0]) slot = slots[0][0];
             h += '<div class="yw-slots">' + slots.map(function (s) { return '<button data-s="' + s[0] + '"' + (s[0] === slot ? ' class="on"' : '') + '>' + s[1] + ' ' + s[2] + '</button>'; }).join('') + '</div>';
             var mine = items(function (it, id) { return it.slot === slot && owns(id); });
@@ -182,14 +198,22 @@
           } else if (tab === 'shop') {
             if (!W) h += '<p class="yw-note">Loading the shop…</p>';
             else {
-              h += '<p class="yw-note">New items every Monday. Tap an item to try it on, and buy it when you have enough coins.<span class="yw-vi">Shop đổi hàng mỗi thứ Hai. Bấm vào món để mặc thử, đủ xu thì mua.</span></p><div class="yw-grid">' + W.shop.filter(function (id) { return cat.items[id]; }).map(function (id) {
-                var it = cat.items[id], have = W.owned.indexOf(id) >= 0;
-                return '<div class="yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + '" data-try="' + id + '">' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (RAR[it.rar] || '') + '</small>' +
-                  (have ? '<button class="yw-buy" disabled>✔ Owned</button>' : '<button class="yw-buy" data-buy="' + id + '" ' + (busy || W.coins < it.price ? 'disabled' : '') + '>🪙 ' + it.price + '</button>') + '</div>';
-              }).join('') + '</div>';
+              var fresh = W.fresh || [];
+              var list = W.shop.filter(function (id) { return cat.items[id] && vis(cat.items[id]); })
+                .sort(function (a, b) { return (fresh.indexOf(b) >= 0) - (fresh.indexOf(a) >= 0) || cat.items[a].price - cat.items[b].price; });
+              h += '<p class="yw-note">New items arrive every Monday! Tap an item you can afford to try it on or buy it.<span class="yw-vi">Mỗi thứ Hai shop có thêm hàng mới. Đủ xu thì chạm vào món để thử hoặc mua.</span></p><div class="yw-grid">' + list.map(function (id) {
+                var it = cat.items[id], have = W.owned.indexOf(id) >= 0, can = W.coins >= it.price;
+                var tag = fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '';
+                var cls = 'yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + (!have && !can ? ' lock' : '');
+                var foot = have ? '<button class="yw-buy" data-try="' + id + '">✔ Owned · wear</button>'
+                  : !can ? '<span class="yw-need">🔒 Need ' + (it.price - W.coins) + ' more 🪙</span><button class="yw-buy" disabled>🪙 ' + it.price + '</button>'
+                  : sel === id ? '<div class="yw-acts"><button class="yw-tryb" data-try="' + id + '">👀 Try on</button><button class="yw-buyb" data-buy="' + id + '" ' + (busy ? 'disabled' : '') + '>🪙 Buy ' + it.price + '</button></div>'
+                  : '<button class="yw-buy" data-sel="' + id + '">🪙 ' + it.price + '</button>';
+                return '<div class="' + cls + '"' + (!have && can ? ' data-sel="' + id + '"' : '') + '>' + tag + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (RAR[it.rar] || '') + '</small>' + foot + '</div>';
+              }).join('') + '</div>' + (list.length ? '' : '<p class="yw-note">Nothing here yet. New items arrive every Monday!</p>');
             }
           } else {
-            var left = items(function (it, id) { return it.src === 'chest' && !(W && W.owned.indexOf(id) >= 0); }).length;
+            var left = items(function (it, id) { return it.src === 'chest' && vis(it) && !(it.rel && it.rel > new Date().toISOString().slice(0, 10)) && !(W && W.owned.indexOf(id) >= 0); }).length;
             h += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
               '<p class="yw-note">The Exquisite Chest holds <b>exclusive</b> items you can’t buy in the shop, and it never gives you something you already have. ' + left + ' item' + (left === 1 ? '' : 's') + ' left to find.<span class="yw-vi">Rương Exquisite chứa đồ độc quyền không bán ở shop, và luôn ra món em chưa có.</span></p>' +
               '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Open free chest (' + (W ? W.freeChests : 0) + ')</button>' +
@@ -208,15 +232,16 @@
           q('[data-t]').forEach(function (b) { b.onclick = function () { tab = b.dataset.t; got = null; draw(); }; });
           q('[data-s]').forEach(function (b) { b.onclick = function () { slot = b.dataset.s; draw(); }; });
           q('[data-eq]').forEach(function (b) { b.onclick = function () { var id = b.dataset.eq; if (id) { cur[slot] = id; cur = normalize(cur, slot); } else delete cur[slot];
-            // chọn Boy/Girl lúc tạo nhân vật → kiểu tóc mặc định theo giới tính
-            if (creating && slot === 'body' && cat.defaults && cat.defaults[id]) Object.keys(cat.defaults[id]).forEach(function (k) { cur[k] = cat.defaults[id][k]; });
+            // chọn Boy/Girl → bỏ đồ khác giới + đồ cơ bản của giới mới (lúc tạo: thay hết), shop/rương theo giới mới
+            if (slot === 'body' && id) { applyBody(creating); if (!creating) refetch(); }
             draw(); }; });
-          q('[data-try]').forEach(function (b) { b.onclick = function (e) { if (e.target.closest('[data-buy]')) return; var it = cat.items[b.dataset.try]; cur[it.slot] = b.dataset.try; cur = normalize(cur, it.slot); draw(); }; });
+          q('[data-sel]').forEach(function (b) { b.onclick = function (e) { if (e.target.closest('[data-try],[data-buy]')) return; e.stopPropagation(); sel = sel === b.dataset.sel ? '' : b.dataset.sel; draw(); }; });
+          q('[data-try]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var it = cat.items[b.dataset.try]; cur[it.slot] = b.dataset.try; cur = normalize(cur, it.slot); draw(); }; });
           q('[data-buy]').forEach(function (b) { b.onclick = function () {
             var id = b.dataset.buy, it = cat.items[id];
             if (!confirm('Buy "' + it.name + '" for ' + it.price + ' coins?')) return;
-            busy = true; draw();
-            api({ action: 'buy', style: style, item: id }).then(function (j) {
+            busy = true; sel = ''; draw();
+            api({ action: 'buy', style: style, item: id, g: G() }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { busy = false; draw(); });
               if (!j.ok) throw new Error(j.error); W = j; cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 You got ' + it.name + '! Don’t forget to tap Save');
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
@@ -226,7 +251,7 @@
             if (pay === 'coins' && !confirm('Open a chest for ' + W.chestPrice + ' coins?')) return;
             busy = true; got = null; draw();
             var t0 = Date.now();
-            api({ action: 'chest', style: style, pay: pay }).then(function (j) {
+            api({ action: 'chest', style: style, pay: pay, g: G() }).then(function (j) {
               if (!j.ok) throw new Error(j.error);
               return new Promise(function (r) { setTimeout(r, Math.max(0, 1400 - (Date.now() - t0))); }).then(function () { W = j; got = j.got; var it = cat.items[j.got]; cur[it.slot] = j.got; cur = normalize(cur, it.slot); });
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
@@ -244,7 +269,7 @@
           }; });
         }
         draw();
-        wallet(style).then(function (j) { if (j.ok) { W = j; draw(); } else if (j.auth) { A().authFailed({}).then(function () { return wallet(style); }).then(function (k) { if (k && k.ok) { W = k; draw(); } }); } }).catch(function () {});
+        wallet(style, G()).then(function (j) { if (j.ok) { W = j; draw(); } else if (j.auth) { A().authFailed({}).then(function () { return wallet(style, G()); }).then(function (k) { if (k && k.ok) { W = k; draw(); } }); } }).catch(function () {});
       });
     });
   }
@@ -252,8 +277,10 @@
   function ensure(opts) {
     opts = opts || {};
     var style = opts.style || 'teen';
-    if (!A() || !A().me() || myOutfit(style)) return Promise.resolve(null);
-    return open(Object.assign({}, opts, { create: true }));
+    if (!A() || !A().me()) return Promise.resolve(null);
+    var o = myOutfit(style);
+    if (!o) return open(Object.assign({}, opts, { create: true }));
+    return load(style).then(function (cat) { var b = cat.items[o.body]; return b && !b.hide ? null : open(Object.assign({}, opts, { create: true })); });
   }
   function button(opts) {
     injectCss();
