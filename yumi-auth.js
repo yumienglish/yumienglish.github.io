@@ -16,7 +16,7 @@
 (function () {
   'use strict';
   // ====== CÔNG TẮC CHUNG: false = các trang chạy như cũ (gõ tên). Đổi true khi cô đã gửi PIN cho mọi em. ======
-  var ENFORCE = false;
+  var ENFORCE = true;
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAom9bBpL0ms0VD7_bz5w691011llkFzttYSjKDyRyMCjLLeUZ4EZGGJLtLMFWuiV4sA/exec';
   var KEY = 'yumi-auth', DAY_KEY = 'yumi-board-day', BOARD_CACHE = 'yumi-board-cache';
 
