@@ -69,7 +69,7 @@
     '.ya-btn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.18)}' +
     '.ya-btn[disabled]{opacity:.6;cursor:wait}' +
     '.ya-err{min-height:22px;margin:12px 0 0;text-align:center;color:#e0394d;font-weight:700;font-size:15px}' +
-    '.ya-hint{text-align:center;font-size:14px;opacity:.7;margin:10px 0 0}' +
+    '.ya-hint{text-align:center;font-size:14px;opacity:.7;margin:10px 0 0}.ya-vi{display:block;font-size:12px;font-style:italic;opacity:.8;margin-top:3px}' +
     /* board */
     '.ya-board{max-width:480px;padding:18px 14px 0;display:flex;flex-direction:column;max-height:min(92vh,760px);overflow:hidden}' +
     '.ya-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}' +
@@ -165,7 +165,7 @@
       };
       ov.innerHTML = '<div class="ya-card">' + mascot +
         '<h1 class="ya-h">' + esc(opts.title || 'Who’s playing?') + '</h1>' +
-        '<div class="ya-tabs ya-mode"><button type="button" data-m="in" class="on">Log in</button><button type="button" data-m="new">✨ Tạo tài khoản</button></div>' +
+        '<div class="ya-tabs ya-mode"><button type="button" data-m="in" class="on">Log in</button><button type="button" data-m="new">✨ Sign up</button></div>' +
         // ---- đăng nhập ----
         '<form class="ya-f" data-f="in" autocomplete="off">' +
         '<p class="ya-sub">' + esc(opts.sub || 'Log in to save your stars and join the leaderboard 🏆') + '</p>' +
@@ -174,22 +174,22 @@
         '<label class="ya-lbl">PIN</label>' + pinRow('in', 'PIN') +
         '<p class="ya-err" role="alert"></p>' +
         '<button class="ya-btn" type="submit">Let’s go 🚀</button>' +
-        '<p class="ya-hint">Chưa có tài khoản? Bấm <b>✨ Tạo tài khoản</b> ở trên. Quên PIN thì nhắn cô nhé 💬</p>' +
+        '<p class="ya-hint">No account yet? Tap <b>✨ Sign up</b> above. Forgot your PIN? Message your teacher 💬<span class="ya-vi">Chưa có tài khoản? Bấm ✨ Sign up ở trên. Quên PIN thì nhắn cô nhé.</span></p>' +
         '</form>' +
         // ---- tạo tài khoản ----
         '<form class="ya-f" data-f="new" autocomplete="off" hidden>' +
-        '<p class="ya-sub">Tự đặt nickname và mã PIN của em nhé 🎮</p>' +
-        '<label class="ya-lbl" for="ya-nick">Nickname <small>(hiện trên bảng xếp hạng)</small></label>' +
-        '<input class="ya-in" id="ya-nick" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="VD: Sói Con, MinhAnh09">' +
-        '<label class="ya-lbl" for="ya-full">Họ và tên thật <small>(chỉ cô thấy)</small></label>' +
-        '<input class="ya-in" id="ya-full" autocomplete="name" maxlength="60" placeholder="VD: Nguyễn Minh Anh">' +
-        '<label class="ya-lbl" for="ya-cls">Lớp</label>' +
+        '<p class="ya-sub">Choose your own nickname and PIN 🎮</p>' +
+        '<label class="ya-lbl" for="ya-nick">Nickname <small>(shown on the leaderboard)</small></label>' +
+        '<input class="ya-in" id="ya-nick" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="e.g. Shadow Fox, MinhAnh09">' +
+        '<label class="ya-lbl" for="ya-full">Real full name <small>(only your teacher sees it)</small></label>' +
+        '<input class="ya-in" id="ya-full" autocomplete="name" maxlength="60" placeholder="e.g. Nguyễn Minh Anh">' +
+        '<label class="ya-lbl" for="ya-cls">Class</label>' +
         '<input class="ya-in" id="ya-cls" autocapitalize="characters" maxlength="20" placeholder="' + esc(opts.clsHint || 'VD: KET01') + '">' +
-        '<label class="ya-lbl">Mã PIN 4 số <small>(em tự nghĩ, nhớ kĩ nhé)</small></label>' + pinRow('p1', 'PIN') +
-        '<label class="ya-lbl">Nhập lại mã PIN</label>' + pinRow('p2', 'Nhập lại PIN') +
+        '<label class="ya-lbl">4-digit PIN <small>(make one up and remember it)</small></label>' + pinRow('p1', 'PIN') +
+        '<label class="ya-lbl">Type your PIN again</label>' + pinRow('p2', 'PIN again') +
         '<p class="ya-err" role="alert"></p>' +
-        '<button class="ya-btn" type="submit">Tạo tài khoản ✨</button>' +
-        '<p class="ya-hint">Tên thật giúp cô biết em là ai. Bạn bè chỉ thấy nickname 😉</p>' +
+        '<button class="ya-btn" type="submit">Create account ✨</button>' +
+        '<p class="ya-hint">Your real name helps your teacher know who you are. Friends only see your nickname 😉<span class="ya-vi">Tên thật giúp cô biết em là ai. Bạn bè chỉ thấy nickname.</span></p>' +
         '</form></div>';
       var forms = { 'in': ov.querySelector('[data-f="in"]'), 'new': ov.querySelector('[data-f="new"]') };
       var user = ov.querySelector('#ya-user');
@@ -244,18 +244,18 @@
         var err = f.querySelector('.ya-err'), btn = f.querySelector('.ya-btn');
         busy = true; btn.disabled = true; btn.textContent = '…'; err.textContent = '';
         post(body).then(function (j) {
-          if (!j.ok) { var e = new Error(j.error || 'Không được rồi, em thử lại nhé'); e.field = j.field; throw e; }
+          if (!j.ok) { var e = new Error(j.error || 'Something went wrong, please try again'); e.field = j.field; throw e; }
           done(j);
         }).catch(function (ex) {
-          err.textContent = /fetch|network|Failed/i.test(ex.message) ? 'Mạng yếu, em thử lại nhé' : ex.message;
+          err.textContent = /fetch|network|Failed/i.test(ex.message) ? 'Weak connection, please try again' : ex.message;
           onFail(ex.field);
         }).then(function () { busy = false; btn.disabled = false; btn.textContent = label; });
       };
       forms['in'].addEventListener('submit', function (e) {
         e.preventDefault(); if (busy) return;
         var err = forms['in'].querySelector('.ya-err'), pin = pinVal('in');
-        if (!user.value.trim()) { err.textContent = 'Em nhập nickname nhé'; user.focus(); return; }
-        if (pin.length !== 4) { err.textContent = 'PIN có 4 số nhé'; (pins('in').filter(function (x) { return !x.value; })[0] || pins('in')[0]).focus(); return; }
+        if (!user.value.trim()) { err.textContent = 'Please enter your nickname'; user.focus(); return; }
+        if (pin.length !== 4) { err.textContent = 'Your PIN has 4 digits'; (pins('in').filter(function (x) { return !x.value; })[0] || pins('in')[0]).focus(); return; }
         run(forms['in'], { action: 'login', user: user.value, pin: pin }, 'Let’s go 🚀', function () { clearPins('in'); shake('in'); pins('in')[0].focus(); });
       });
       forms['new'].addEventListener('submit', function (e) {
@@ -264,12 +264,12 @@
         var nick = f.querySelector('#ya-nick'), full = f.querySelector('#ya-full'), cls = f.querySelector('#ya-cls');
         var p1 = pinVal('p1'), p2 = pinVal('p2');
         var bad = function (msg, el) { err.textContent = msg; el.focus(); };
-        if (nick.value.trim().length < 3) return bad('Nickname cần ít nhất 3 chữ nhé', nick);
-        if (full.value.trim().split(/\s+/).length < 2) return bad('Em nhập đủ họ và tên thật nhé', full);
-        if (!cls.value.trim()) return bad('Em nhập lớp nhé', cls);
-        if (p1.length !== 4) return bad('Mã PIN có 4 số nhé', pins('p1').filter(function (x) { return !x.value; })[0] || pins('p1')[0]);
-        if (p1 !== p2) { clearPins('p2'); shake('p2'); return bad('Hai mã PIN chưa giống nhau, em nhập lại nhé', pins('p2')[0]); }
-        run(f, { action: 'register', nick: nick.value, full: full.value, cls: cls.value, pin: p1 }, 'Tạo tài khoản ✨', function (field) {
+        if (nick.value.trim().length < 3) return bad('Your nickname needs at least 3 letters', nick);
+        if (full.value.trim().split(/\s+/).length < 2) return bad('Please enter your full real name (first and last name)', full);
+        if (!cls.value.trim()) return bad('Please enter your class', cls);
+        if (p1.length !== 4) return bad('Your PIN needs 4 digits', pins('p1').filter(function (x) { return !x.value; })[0] || pins('p1')[0]);
+        if (p1 !== p2) { clearPins('p2'); shake('p2'); return bad('The two PINs don’t match, please try again', pins('p2')[0]); }
+        run(f, { action: 'register', nick: nick.value, full: full.value, cls: cls.value, pin: p1 }, 'Create account ✨', function (field) {
           if (field === 'pin') { clearPins('p1'); clearPins('p2'); shake('p1'); pins('p1')[0].focus(); }
           else if (field === 'nick') nick.focus(); else if (field === 'full') full.focus(); else if (field === 'cls') cls.focus();
         });
@@ -314,7 +314,7 @@
     function render() {
       if (!data) { sc.innerHTML = '<div class="ya-spin"></div>'; pin.innerHTML = ''; return; }
       var list = data[tab] || [];
-      if (!list.length) { sc.innerHTML = '<p class="ya-msg">Chưa có ai trên bảng 🌱</p>'; pin.innerHTML = data.pending ? '<p class="ya-msg">⏳ Cô đang kiểm tra họ tên của em. Ghép xong em sẽ lên bảng nhé!</p>' : ''; return; }
+      if (!list.length) { sc.innerHTML = '<p class="ya-msg">No one on the board yet 🌱</p>'; pin.innerHTML = data.pending ? '<p class="ya-msg">⏳ Your teacher is checking your name. You’ll join the board soon!</p>' : ''; return; }
       var top = list.filter(function (o) { return o.xp > 0; }).slice(0, 3);
       var html = '';
       if (top.length) {
@@ -327,10 +327,10 @@
         }).join('') + '</div>';
       }
       html += list.slice(top.length).map(row).join('');
-      if (tab === 'week') html += '<p class="ya-foot">Mỗi bài: % đúng + sửa đúng lần 2 + tập trung không rời trang + 🎯 đúng hết</p>';
+      if (tab === 'week') html += '<p class="ya-foot">XP per lesson: first-try score + fixes on try 2 + staying focused + 🎯 all correct</p>';
       sc.innerHTML = html;
       var mine = list.filter(function (o) { return o.me; })[0];
-      pin.innerHTML = mine ? row(mine) : data.pending ? '<p class="ya-msg" style="padding:10px 4px">⏳ Cô đang kiểm tra họ tên của em. Ghép xong em sẽ lên bảng nhé!</p>' : '';
+      pin.innerHTML = mine ? row(mine) : data.pending ? '<p class="ya-msg" style="padding:10px 4px">⏳ Your teacher is checking your name. You’ll join the board soon!</p>' : '';
     }
     render();
     fetch(SCRIPT_URL + '?action=board&token=' + encodeURIComponent(token()))
@@ -343,7 +343,7 @@
         if (document.body.contains(ov)) render();
       })
       .catch(function () {
-        if (!data && document.body.contains(ov)) sc.innerHTML = '<p class="ya-msg">Không tải được bảng xếp hạng 😢<br>Em kiểm tra mạng rồi mở lại nhé.</p>';
+        if (!data && document.body.contains(ov)) sc.innerHTML = '<p class="ya-msg">Couldn’t load the leaderboard 😢<br>Check your connection and try again.</p>';
       });
     return Promise.resolve();
   }
@@ -369,7 +369,7 @@
   function authFailed(opts) {
     var a = auth();
     if (a) LS.set(KEY, { token: '', me: null, last: a.me && (a.me.name || a.me.user) });
-    return loginScreen(Object.assign({}, opts || {}, { sub: 'Em đăng nhập lại để gửi bài nhé 📨' }));
+    return loginScreen(Object.assign({}, opts || {}, { sub: 'Please log in again to send your work 📨' }));
   }
   function logout() { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); }
 

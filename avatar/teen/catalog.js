@@ -1,10 +1,35 @@
 /* Bộ nhân vật TEEN (PET + B2 First). Sinh tự động bằng build.mjs – giá/nguồn phải khớp AV_CATALOG trong Code.gs. */
-YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 20, w: 380, h: 380 }, items: {
+YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 20, w: 380, h: 380 }, defaults: { bm: { hair: 'h1' }, bf: { hair: 'h2' } }, items: {
  "body": {
   "slot": "body",
-  "name": "Nhân vật",
+  "name": "Character",
   "src": "free",
+  "hide": true,
   "img": "body.webp",
+  "x": 0,
+  "y": 0,
+  "w": 1024,
+  "h": 1536
+ },
+ "bm": {
+  "slot": "body",
+  "name": "Boy",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "img": "bm.webp",
+  "x": 0,
+  "y": 0,
+  "w": 1024,
+  "h": 1536
+ },
+ "bf": {
+  "slot": "body",
+  "name": "Girl",
+  "src": "free",
+  "rar": "c",
+  "price": 0,
+  "img": "bf.webp",
   "x": 0,
   "y": 0,
   "w": 1024,
@@ -12,7 +37,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "h1": {
   "slot": "hair",
-  "name": "Tóc ngắn rối",
+  "name": "Messy short hair",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -24,7 +49,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "h2": {
   "slot": "hair",
-  "name": "Tóc dài mái thưa",
+  "name": "Long hair with bangs",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -36,7 +61,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "h3": {
   "slot": "hair",
-  "name": "Tóc buộc cao",
+  "name": "High ponytail",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -48,7 +73,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "h4": {
   "slot": "hair",
-  "name": "Tóc xanh điện",
+  "name": "Electric blue hair",
   "src": "shop",
   "rar": "r",
   "price": 180,
@@ -60,7 +85,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "h5": {
   "slot": "hair",
-  "name": "Búi đôi hồng",
+  "name": "Pink space buns",
   "src": "shop",
   "rar": "r",
   "price": 200,
@@ -72,7 +97,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "f1": {
   "slot": "face",
-  "name": "Cool ngầu",
+  "name": "Cool smirk",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -84,7 +109,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "f2": {
   "slot": "face",
-  "name": "Cười tít mắt",
+  "name": "Big happy smile",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -96,7 +121,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "f3": {
   "slot": "face",
-  "name": "Nháy mắt lè lưỡi",
+  "name": "Wink & tongue",
   "src": "shop",
   "rar": "r",
   "price": 150,
@@ -108,7 +133,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "t1": {
   "slot": "top",
-  "name": "Áo phông ngôi sao",
+  "name": "Star T-shirt",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -120,7 +145,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "t2": {
   "slot": "top",
-  "name": "Hoodie neon",
+  "name": "Neon hoodie",
   "src": "shop",
   "rar": "r",
   "price": 260,
@@ -132,7 +157,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "t3": {
   "slot": "top",
-  "name": "Áo khoác varsity",
+  "name": "Varsity jacket",
   "src": "shop",
   "rar": "c",
   "price": 220,
@@ -144,7 +169,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "b1": {
   "slot": "bottom",
-  "name": "Quần jean",
+  "name": "Blue jeans",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -156,7 +181,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "b2": {
   "slot": "bottom",
-  "name": "Quần cargo đen",
+  "name": "Black cargo pants",
   "src": "shop",
   "rar": "c",
   "price": 200,
@@ -168,7 +193,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "d1": {
   "slot": "dress",
-  "name": "Váy xếp ly pastel",
+  "name": "Pastel pleated dress",
   "src": "shop",
   "rar": "r",
   "price": 320,
@@ -180,7 +205,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "st1": {
   "slot": "set",
-  "name": "Set áo đấu esports",
+  "name": "Esports team kit",
   "src": "shop",
   "rar": "e",
   "price": 450,
@@ -192,7 +217,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "s1": {
   "slot": "shoes",
-  "name": "Sneaker trắng",
+  "name": "White sneakers",
   "src": "free",
   "rar": "c",
   "price": 0,
@@ -204,7 +229,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "s2": {
   "slot": "shoes",
-  "name": "Giày cao cổ neon",
+  "name": "Neon high-tops",
   "src": "shop",
   "rar": "r",
   "price": 240,
@@ -216,7 +241,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "c1": {
   "slot": "hat",
-  "name": "Mũ lưỡi trai ngược",
+  "name": "Backwards cap",
   "src": "shop",
   "rar": "c",
   "price": 160,
@@ -228,7 +253,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "g1": {
   "slot": "glasses",
-  "name": "Kính tròn",
+  "name": "Round glasses",
   "src": "shop",
   "rar": "c",
   "price": 140,
@@ -240,7 +265,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "bg1": {
   "slot": "bag",
-  "name": "Ba lô mini",
+  "name": "Mini backpack",
   "src": "shop",
   "rar": "c",
   "price": 180,
@@ -252,7 +277,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "hd1": {
   "slot": "hand",
-  "name": "Trà sữa trân châu",
+  "name": "Bubble tea",
   "src": "shop",
   "rar": "c",
   "price": 120,
@@ -264,7 +289,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "p1": {
   "slot": "pet",
-  "name": "Mèo robot",
+  "name": "Robo-cat",
   "src": "shop",
   "rar": "e",
   "price": 380,
@@ -276,7 +301,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "pa1": {
   "slot": "petacc",
-  "name": "Đệm phát sáng",
+  "name": "Glow cushion",
   "src": "shop",
   "rar": "c",
   "price": 150,
@@ -288,7 +313,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "w1": {
   "slot": "wings",
-  "name": "Cánh thiên thần",
+  "name": "Angel wings",
   "src": "chest",
   "rar": "x",
   "price": 0,
@@ -300,7 +325,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "st2": {
   "slot": "set",
-  "name": "Set idol thiên hà",
+  "name": "Galaxy idol outfit",
   "src": "chest",
   "rar": "x",
   "price": 0,
@@ -312,7 +337,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "c2": {
   "slot": "hat",
-  "name": "Vương miện",
+  "name": "Royal crown",
   "src": "chest",
   "rar": "x",
   "price": 0,
@@ -324,7 +349,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "p2": {
   "slot": "pet",
-  "name": "Rồng con",
+  "name": "Baby dragon",
   "src": "chest",
   "rar": "x",
   "price": 0,
@@ -336,7 +361,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "hd2": {
   "slot": "hand",
-  "name": "Đàn guitar neon",
+  "name": "Neon guitar",
   "src": "chest",
   "rar": "x",
   "price": 0,
@@ -348,7 +373,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "pa2": {
   "slot": "petacc",
-  "name": "Vòng sao lấp lánh",
+  "name": "Star sparkle ring",
   "src": "chest",
   "rar": "x",
   "price": 0,

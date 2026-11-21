@@ -14,13 +14,13 @@
   var BASE = (function () { try { return new URL('.', document.currentScript.src).href; } catch (_) { return '/avatar/'; } })();
   var CATS = {}, LOADING = {};
   var SLOTS = [
-    ['hair', '💇', 'Tóc'], ['face', '😊', 'Mặt'], ['top', '👕', 'Áo'], ['bottom', '👖', 'Quần'], ['dress', '👗', 'Váy'],
-    ['set', '🎽', 'Set đồ'], ['shoes', '👟', 'Giày'], ['wings', '🪽', 'Cánh'], ['hat', '🧢', 'Mũ'], ['glasses', '🕶️', 'Kính'],
-    ['bag', '👜', 'Túi'], ['hand', '🗡️', 'Cầm tay'], ['pet', '🐾', 'Thú cưng'], ['petacc', '🎀', 'Đồ thú cưng']
+    ['body', '🧑', 'Boy / Girl'], ['hair', '💇', 'Hair'], ['face', '😊', 'Face'], ['top', '👕', 'Tops'], ['bottom', '👖', 'Bottoms'], ['dress', '👗', 'Dresses'],
+    ['set', '🎽', 'Outfits'], ['shoes', '👟', 'Shoes'], ['wings', '🪽', 'Wings'], ['hat', '🧢', 'Hats'], ['glasses', '🕶️', 'Glasses'],
+    ['bag', '👜', 'Bags'], ['hand', '🎸', 'In hand'], ['pet', '🐾', 'Pets'], ['petacc', '🎀', 'Pet items']
   ];
   // thứ tự vẽ (dưới → trên)
   var Z = ['wings', 'body', 'bottom', 'shoes', 'top', 'dress', 'set', 'face', 'hair', 'glasses', 'hat', 'bag', 'hand', 'pet', 'petacc'];
-  var RAR = { c: 'Thường', r: 'Hiếm', e: 'Sử thi', x: 'Exquisite' };
+  var RAR = { c: 'Common', r: 'Rare', e: 'Epic', x: 'Exquisite' };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
   function register(style, cat) { CATS[style] = cat; }
@@ -53,7 +53,7 @@
   function withDefaults(cat, o) { // ô trống bắt buộc (người, mặt) → món miễn phí đầu tiên
     o = Object.assign({}, o);
     ['body'].forEach(function (slot) { // mặt gốc có sẵn trong người → ô Mặt để trống = mặc định
-      if (!o[slot]) { var id = Object.keys(cat.items).filter(function (k) { return cat.items[k].slot === slot && cat.items[k].src === 'free'; })[0]; if (id) o[slot] = id; }
+      if (!o[slot]) { var id = Object.keys(cat.items).filter(function (k) { return cat.items[k].slot === slot && cat.items[k].src === 'free' && !cat.items[k].hide; })[0]; if (id) o[slot] = id; }
     });
     return o;
   }
@@ -81,7 +81,8 @@
   var CSS = '' +
     '.yw-ov{position:fixed;inset:0;z-index:2147483001;background:var(--ya-bg,#120d2b);color:var(--ya-text,#fff);font-family:var(--ya-font,system-ui);overflow-y:auto;-webkit-overflow-scrolling:touch}' +
     '.yw{max-width:980px;margin:0 auto;padding:14px 14px 40px;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px}' +
-    '@media(max-width:720px){.yw{grid-template-columns:1fr}.yw-left{position:sticky;top:0;z-index:2;background:var(--ya-bg,#120d2b);padding-bottom:8px}.yw-stage{max-width:210px;margin:0 auto}}' +
+    '.yw>div{min-width:0}.yw-top{min-width:0}' +
+    '@media(max-width:720px){.yw{grid-template-columns:minmax(0,1fr)}.yw-left{position:sticky;top:0;z-index:2;background:var(--ya-bg,#120d2b);padding-bottom:8px}.yw-stage{max-width:210px;margin:0 auto}}' +
     '.yw-top{display:flex;align-items:center;gap:10px;grid-column:1/-1}' +
     '.yw-top h2{flex:1;margin:0;font-family:var(--ya-head,inherit);font-size:26px}' +
     '.yw-coin{font-weight:800;font-size:18px;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;border-radius:99px;padding:6px 14px;white-space:nowrap}' +
@@ -117,7 +118,7 @@
     '.yw-chest .yw-btns button{border:0;border-radius:14px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6))}' +
     '.yw-chest .yw-btns button[disabled]{opacity:.45;cursor:default}' +
     '.yw-earn{font-size:13.5px;line-height:1.6;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 14px;margin-top:14px}' +
-    '.yw-earn b{color:#ffcf3f}' +
+    '.yw-earn b{color:#ffcf3f}.yw-vi{display:block;font-size:12px;opacity:.7;font-style:italic;margin-top:2px}.yw-earn .yw-vi{margin-top:6px}' +
     '.yw-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:12px;z-index:2147483002;font-weight:700;max-width:90vw;text-align:center}' +
     '.yav-head{border-radius:50%}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
@@ -150,75 +151,79 @@
         ['bg', 'text', 'acc', 'acc2', 'font', 'head'].forEach(function (k) { if (th[k]) ov.style.setProperty('--ya-' + k, th[k]); });
         document.body.appendChild(ov);
         try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
-        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = 'hair', busy = false, got = null;
+        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null;
         var saved = myOutfit(style) || {}, cur = withDefaults(cat, saved);
         if (creating) ['hair', 'top', 'bottom', 'shoes'].forEach(function (s) { // tạo lần đầu: mặc sẵn đồ cơ bản, em đổi tuỳ thích
           if (cur[s]) return; var id = Object.keys(cat.items).filter(function (k) { return cat.items[k].slot === s && cat.items[k].src === 'free'; })[0]; if (id) cur[s] = id; });
         var items = function (f) { return Object.keys(cat.items).filter(function (id) { return f(cat.items[id], id); }); };
-        var owns = function (id) { var it = cat.items[id]; return it.src === 'free' || (W && W.owned.indexOf(id) >= 0); };
+        var owns = function (id) { var it = cat.items[id]; return !it.hide && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
         var thumb = function (it) { return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
         function close(v) { ov.remove(); try { document.documentElement.style.overflow = ''; } catch (_) {} resolve(v); }
         function draw() {
           var dirty = JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved));
-          var h = '<div class="yw"><div class="yw-top"><h2>' + (creating ? '✨ Tạo nhân vật' : '👕 Tủ đồ') + '</h2>' +
-            '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating ? '' : '<button class="yw-x" data-x aria-label="Đóng">✕</button>') + '</div>' +
+          var h = '<div class="yw"><div class="yw-top"><h2>' + (creating ? '✨ Create your character' : '👕 Wardrobe') + '</h2>' +
+            '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating ? '' : '<button class="yw-x" data-x aria-label="Close">✕</button>') + '</div>' +
             '<div class="yw-left"><div class="yw-stage">' + render(cat, cur) + '</div>' +
-            (W ? '<div class="yw-stat"><span>🔥 Chuỗi ' + W.streak + ' tuần' + (W.mult > 1 ? ' (×' + W.mult + ' xu)' : '') + '</span><span>🎁 ' + W.freeChests + ' rương tặng</span></div>' : '') +
-            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Xong, vào chơi! 🚀' : '💾 Lưu nhân vật') + '</button></div><div class="yw-right">';
-          if (!creating) h += '<div class="yw-tabs"><button data-t="wardrobe"' + (tab === 'wardrobe' ? ' class="on"' : '') + '>👕 Tủ đồ</button><button data-t="shop"' + (tab === 'shop' ? ' class="on"' : '') +
-            '>🛍️ Shop tuần này</button><button data-t="chest"' + (tab === 'chest' ? ' class="on"' : '') + '>💎 Rương</button></div>';
+            (W ? '<div class="yw-stat"><span>🔥 ' + W.streak + '-week streak' + (W.mult > 1 ? ' (×' + W.mult + ' coins)' : '') + '</span><span>🎁 ' + W.freeChests + ' free chest' + (W.freeChests === 1 ? '' : 's') + '</span></div>' : '') +
+            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save character') + '</button></div><div class="yw-right">';
+          if (!creating) h += '<div class="yw-tabs"><button data-t="wardrobe"' + (tab === 'wardrobe' ? ' class="on"' : '') + '>👕 Wardrobe</button><button data-t="shop"' + (tab === 'shop' ? ' class="on"' : '') +
+            '>🛍️ Shop</button><button data-t="chest"' + (tab === 'chest' ? ' class="on"' : '') + '>💎 Chest</button></div>';
           if (tab === 'wardrobe') {
-            var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free'); }).length; });
+            var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free' && !it.hide); }).length; });
             if (!slots.some(function (s) { return s[0] === slot; }) && slots[0]) slot = slots[0][0];
             h += '<div class="yw-slots">' + slots.map(function (s) { return '<button data-s="' + s[0] + '"' + (s[0] === slot ? ' class="on"' : '') + '>' + s[1] + ' ' + s[2] + '</button>'; }).join('') + '</div>';
             var mine = items(function (it, id) { return it.slot === slot && owns(id); });
             var opt = slot !== 'body' && slot !== 'hair';
-            h += '<div class="yw-grid">' + (opt ? '<button class="yw-it' + (!cur[slot] ? ' on' : '') + '" data-eq=""><div class="yw-th" style="font-size:34px">' + (slot === 'face' ? '🙂' : '🚫') + '</div><b>' + (slot === 'face' ? 'Mặc định' : 'Bỏ ra') + '</b></button>' : '') +
+            h += '<div class="yw-grid">' + (opt ? '<button class="yw-it' + (!cur[slot] ? ' on' : '') + '" data-eq=""><div class="yw-th" style="font-size:34px">' + (slot === 'face' ? '🙂' : '🚫') + '</div><b>' + (slot === 'face' ? 'Default' : 'Take off') + '</b></button>' : '') +
               mine.map(function (id) { var it = cat.items[id];
                 return '<button class="yw-it yw-r-' + (it.rar || 'c') + (cur[slot] === id ? ' on' : '') + '" data-eq="' + id + '">' + thumb(it) + '<b>' + esc(it.name) + '</b></button>'; }).join('') + '</div>';
-            if (!creating) h += '<p class="yw-note">Muốn thêm đồ? Vào 🛍️ Shop hoặc mở 💎 Rương nhé!</p>';
-            else h += '<p class="yw-note">Đây là đồ cơ bản. Làm bài tập để kiếm 🪙 mua thêm đồ xịn ở shop nhé!</p>';
+            if (!creating) h += '<p class="yw-note">Want more? Visit the 🛍️ Shop or open a 💎 Chest!</p>';
+            else h += '<p class="yw-note">These are your starter clothes. Do your homework to earn 🪙 coins and buy cool new items in the shop!<span class="yw-vi">Đây là đồ cơ bản. Làm bài tập để kiếm xu mua thêm đồ xịn ở shop nhé!</span></p>';
           } else if (tab === 'shop') {
-            if (!W) h += '<p class="yw-note">Đang tải shop…</p>';
+            if (!W) h += '<p class="yw-note">Loading the shop…</p>';
             else {
-              h += '<p class="yw-note">Shop đổi hàng mỗi thứ Hai. Bấm vào món để mặc thử, đủ xu thì mua.</p><div class="yw-grid">' + W.shop.filter(function (id) { return cat.items[id]; }).map(function (id) {
+              h += '<p class="yw-note">New items every Monday. Tap an item to try it on, and buy it when you have enough coins.<span class="yw-vi">Shop đổi hàng mỗi thứ Hai. Bấm vào món để mặc thử, đủ xu thì mua.</span></p><div class="yw-grid">' + W.shop.filter(function (id) { return cat.items[id]; }).map(function (id) {
                 var it = cat.items[id], have = W.owned.indexOf(id) >= 0;
                 return '<div class="yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + '" data-try="' + id + '">' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (RAR[it.rar] || '') + '</small>' +
-                  (have ? '<button class="yw-buy" disabled>✔ Đã có</button>' : '<button class="yw-buy" data-buy="' + id + '" ' + (busy || W.coins < it.price ? 'disabled' : '') + '>🪙 ' + it.price + '</button>') + '</div>';
+                  (have ? '<button class="yw-buy" disabled>✔ Owned</button>' : '<button class="yw-buy" data-buy="' + id + '" ' + (busy || W.coins < it.price ? 'disabled' : '') + '>🪙 ' + it.price + '</button>') + '</div>';
               }).join('') + '</div>';
             }
           } else {
             var left = items(function (it, id) { return it.src === 'chest' && !(W && W.owned.indexOf(id) >= 0); }).length;
             h += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
-              '<p class="yw-note">Rương Exquisite chứa đồ <b>độc quyền</b> không bán ở shop, và luôn ra món em chưa có. Còn ' + left + ' món chưa mở.</p>' +
-              '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Mở rương tặng (' + (W ? W.freeChests : 0) + ')</button>' +
-              '<button data-chest="coins" ' + (busy || !W || W.coins < W.chestPrice || !left ? 'disabled' : '') + '>🪙 ' + (W ? W.chestPrice : 600) + ' xu</button></div>' +
-              '<p class="yw-note">Rương tặng: cứ 5 bài tập → 1 rương, cứ 3 bài đúng hết ngay lần 1 → 1 rương.</p></div>';
+              '<p class="yw-note">The Exquisite Chest holds <b>exclusive</b> items you can’t buy in the shop, and it never gives you something you already have. ' + left + ' item' + (left === 1 ? '' : 's') + ' left to find.<span class="yw-vi">Rương Exquisite chứa đồ độc quyền không bán ở shop, và luôn ra món em chưa có.</span></p>' +
+              '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Open free chest (' + (W ? W.freeChests : 0) + ')</button>' +
+              '<button data-chest="coins" ' + (busy || !W || W.coins < W.chestPrice || !left ? 'disabled' : '') + '>🪙 ' + (W ? W.chestPrice : 600) + ' coins</button></div>' +
+              '<p class="yw-note">Free chests: 1 for every 5 lessons, and 1 for every 3 lessons that are 100% right on the first try.<span class="yw-vi">Rương tặng: cứ 5 bài tập → 1 rương, cứ 3 bài đúng hết ngay lần 1 → 1 rương.</span></p></div>';
           }
-          if (!creating) h += '<div class="yw-earn"><b>Cách kiếm 🪙</b><br>📚 Mỗi bài tập: 30 xu nộp bài + đến 50 xu theo % đúng lần 1<br>✏️ Sửa đúng hết ở lần 2: +20 · 🎯 Không rời trang: +10 · 💯 Đúng hết ngay: +20<br>' +
-            '🔥 Tuần nào cũng nộp bài: xu ×1.2 → ×1.5<br>🎮 Mini game ôn từ: +5 xu/lượt (3 lượt/ngày)</div>';
+          if (!creating) h += '<div class="yw-earn"><b>How to earn 🪙</b><br>📚 Every lesson: 30 coins for handing it in + up to 50 for your first-try score<br>✏️ Fix all mistakes on try 2: +20 · 🎯 Stay on the page: +10 · 💯 All correct first time: +20<br>' +
+            '🔥 Hand in every week: coins ×1.2 → ×1.5<br>🎮 Word mini games: +5 coins a round (3 rounds a day)' +
+            '<span class="yw-vi">Mỗi bài: 30 xu nộp bài + đến 50 xu theo điểm lần 1 · sửa hết lỗi ở lần 2 +20 · không rời trang +10 · đúng hết ngay +20 · tuần nào cũng nộp bài: xu ×1.2 → ×1.5 · mini game ôn từ +5 xu/lượt (3 lượt/ngày)</span></div>';
           ov.innerHTML = h + '</div></div>';
           bind();
         }
         function bind() {
           var q = function (s) { return [].slice.call(ov.querySelectorAll(s)); };
-          q('[data-x]').forEach(function (b) { b.onclick = function () { if (JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved)) && !confirm('Em chưa lưu nhân vật. Thoát luôn?')) return; close(); }; });
+          q('[data-x]').forEach(function (b) { b.onclick = function () { if (JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved)) && !confirm('You haven’t saved your character. Leave anyway?')) return; close(); }; });
           q('[data-t]').forEach(function (b) { b.onclick = function () { tab = b.dataset.t; got = null; draw(); }; });
           q('[data-s]').forEach(function (b) { b.onclick = function () { slot = b.dataset.s; draw(); }; });
-          q('[data-eq]').forEach(function (b) { b.onclick = function () { var id = b.dataset.eq; if (id) { cur[slot] = id; cur = normalize(cur, slot); } else delete cur[slot]; draw(); }; });
+          q('[data-eq]').forEach(function (b) { b.onclick = function () { var id = b.dataset.eq; if (id) { cur[slot] = id; cur = normalize(cur, slot); } else delete cur[slot];
+            // chọn Boy/Girl lúc tạo nhân vật → kiểu tóc mặc định theo giới tính
+            if (creating && slot === 'body' && cat.defaults && cat.defaults[id]) Object.keys(cat.defaults[id]).forEach(function (k) { cur[k] = cat.defaults[id][k]; });
+            draw(); }; });
           q('[data-try]').forEach(function (b) { b.onclick = function (e) { if (e.target.closest('[data-buy]')) return; var it = cat.items[b.dataset.try]; cur[it.slot] = b.dataset.try; cur = normalize(cur, it.slot); draw(); }; });
           q('[data-buy]').forEach(function (b) { b.onclick = function () {
             var id = b.dataset.buy, it = cat.items[id];
-            if (!confirm('Mua "' + it.name + '" với ' + it.price + ' xu?')) return;
+            if (!confirm('Buy "' + it.name + '" for ' + it.price + ' coins?')) return;
             busy = true; draw();
             api({ action: 'buy', style: style, item: id }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { busy = false; draw(); });
-              if (!j.ok) throw new Error(j.error); W = j; cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 Đã mua ' + it.name + '! Nhớ bấm Lưu nhân vật nhé');
+              if (!j.ok) throw new Error(j.error); W = j; cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 You got ' + it.name + '! Don’t forget to tap Save');
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
           }; });
           q('[data-chest]').forEach(function (b) { b.onclick = function () {
             var pay = b.dataset.chest;
-            if (pay === 'coins' && !confirm('Mở rương với ' + W.chestPrice + ' xu?')) return;
+            if (pay === 'coins' && !confirm('Open a chest for ' + W.chestPrice + ' coins?')) return;
             busy = true; got = null; draw();
             var t0 = Date.now();
             api({ action: 'chest', style: style, pay: pay }).then(function (j) {
@@ -232,10 +237,10 @@
             api({ action: 'outfit', style: style, outfit: o }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { draw(); });
               if (!j.ok) throw new Error(j.error);
-              saved = parse(j.outfit).o; setMyOutfit(j.outfit); toast('✅ Đã lưu nhân vật!');
+              saved = parse(j.outfit).o; setMyOutfit(j.outfit); toast('✅ Character saved!');
               if (creating) close(j.outfit); else draw();
               if (opts.onSave) opts.onSave(j.outfit);
-            }).catch(function (e) { toast(e.message || 'Không lưu được, thử lại nhé'); draw(); });
+            }).catch(function (e) { toast(e.message || 'Couldn’t save, please try again'); draw(); });
           }; });
         }
         draw();
@@ -253,14 +258,14 @@
   function button(opts) {
     injectCss();
     var b = document.createElement('button'); b.type = 'button'; b.className = 'ya-trophy'; b.style.background = 'linear-gradient(135deg,#7c4dff,#ff2e88)';
-    b.innerHTML = '👕 <span>' + esc((opts && opts.label) || 'Tủ đồ') + '</span>';
+    b.innerHTML = '👕 <span>' + esc((opts && opts.label) || 'Wardrobe') + '</span>';
     b.onclick = function () { open(opts); };
     return b;
   }
   /** Mini game xong 1 lượt → +5 xu (máy chủ giới hạn 3 lượt/ngày). */
   function gamePlayed(name) {
     if (!A() || !A().token()) return Promise.resolve(null);
-    return api({ action: 'game', game: name || '' }).then(function (j) { if (j && j.added) toast('🪙 +' + j.added + ' xu (mini game)'); return j; }).catch(function () { return null; });
+    return api({ action: 'game', game: name || '' }).then(function (j) { if (j && j.added) toast('🪙 +' + j.added + ' coins (mini game)'); return j; }).catch(function () { return null; });
   }
   window.YumiAvatar = { register: register, load: load, html: html, render: render, open: open, ensure: ensure, button: button, gamePlayed: gamePlayed, parse: parse, SLOTS: SLOTS };
 })();
