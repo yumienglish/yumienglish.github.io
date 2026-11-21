@@ -91,7 +91,7 @@
     '.ya-p1 .ya-av{width:72px;height:72px;font-size:46px;box-shadow:0 0 0 4px #ffcf3f}' +
     '.ya-crown{font-size:26px;line-height:1;margin-bottom:-4px}' +
     '.ya-av{width:44px;height:44px;border-radius:50%;background:var(--ya-field);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex:none}' +
-    '.ya-av img{width:100%;height:100%;object-fit:cover}' +
+    '.ya-av img{width:100%;height:100%;object-fit:cover}.ya-av.ya-char{background:radial-gradient(circle,#fff,#e9e2ff)}.ya-av.ya-char .yav img{object-fit:fill}' +
     '.ya-av.ya-ini{font-family:var(--ya-head);font-weight:800;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--ya-acc),var(--ya-acc2))}' +
     '.ya-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;margin-bottom:6px;background:var(--ya-field)}' +
     '.ya-row .ya-rk{width:30px;text-align:center;font-family:var(--ya-head);font-weight:800;font-size:18px;flex:none}' +
@@ -139,6 +139,10 @@
   function avHtml(av, name) {
     av = String(av || '');
     var ini = esc(String(name || '?').trim().charAt(0).toUpperCase());
+    if (/^[a-z0-9]+:{/.test(av)) { // nhân vật tủ đồ (avatar.js) → khuôn mặt nhân vật
+      var ch = window.YumiAvatar ? window.YumiAvatar.html(av, { crop: 'head' }) : '';
+      return ch ? '<div class="ya-av ya-char">' + ch + '</div>' : '<div class="ya-av ya-ini">' + ini + '</div>';
+    }
     if (/^\/[\w-]+(\/[\w.-]+)+\.(webp|png|jpe?g|svg)$/i.test(av)) return '<div class="ya-av"><img src="' + esc(av) + '" alt="" ' +
       'onerror="this.parentNode.className=\'ya-av ya-ini\';this.parentNode.textContent=\'' + ini.replace(/'/g, '') + '\'"></div>';
     if (av) return '<div class="ya-av">' + esc(av) + '</div>';
@@ -369,6 +373,16 @@
   }
   function logout() { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); }
 
+  // nạp sẵn avatar.js (nhân vật + tủ đồ) để bảng xếp hạng vẽ được nhân vật
+  (function () {
+    var src = (document.currentScript ? document.currentScript.src : '');
+    var go = function () { try {
+      if (window.YumiAvatar || document.querySelector('script[data-yumi-av],script[src*="/avatar/avatar.js"]')) return;
+      var s = document.createElement('script'); s.src = new URL('avatar/avatar.js?v=1', src || location.origin + '/').href;
+      s.setAttribute('data-yumi-av', '1'); (document.head || document.documentElement).appendChild(s);
+    } catch (_) {} };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+  })();
   window.YumiAuth = { ready: ready, me: me, token: token, require: requireLogin, login: loginScreen, board: board, autoBoard: autoBoard,
     trophy: trophy, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL };
 })();
