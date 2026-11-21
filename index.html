@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yumi English</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:linear-gradient(160deg,#ffe3ec,#e3fff4);--text:#2b2440}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;
+    background:var(--bg);color:var(--text);font-family:'Be Vietnam Pro',system-ui,sans-serif;text-align:center}
+  h1{font-family:'Baloo 2',system-ui,sans-serif;font-size:40px;margin:0 0 6px}
+  p{margin:0 0 18px;opacity:.8}
+  .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main>
+  <h1>Yumi English 🌸</h1>
+  <p>Em mở bài tập bằng link cô gửi trong nhóm Zalo nhé.</p>
+  <div class="row" id="row"></div>
+</main>
+<script src="yumi-auth.js?v=1"></script>
+<script>
+  if (YumiAuth.me()) document.getElementById('row').appendChild(YumiAuth.trophy());
+</script>
+</body>
+</html>
