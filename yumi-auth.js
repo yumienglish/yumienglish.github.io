@@ -132,15 +132,26 @@
     var t = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 9000); });
     return Promise.race([fetch(SCRIPT_URL + '?action=progress&token=' + encodeURIComponent(a.token)).then(function (r) { return r.json(); }), t]);
   }
+  // bài tiến tới đâu: 3 = xong, 2 = đã nộp lần 1 (chờ làm lại), 1 = đang làm, 0 = khác
+  function rankOf(v) { var o; try { o = JSON.parse(v); } catch (_) { return 0; } if (!o || typeof o !== 'object') return 0;
+    if (o.phase === 'done' || o.done === true) return 3; if (o.phase === 'review' || o.phase === 'retry' || o.submitted === true || o.r1) return 2;
+    return o.phase || o.startedAt ? 1 : 0; }
   // so dữ liệu máy chủ với máy → 'owner' (trang đang mở đổi chủ) / 'data' (dữ liệu trang đổi) / ''
   function reconcile(j, u) {
     var siteChanged = '';
     GROUPS.forEach(function (g) {
       var s = sst(g), srv = (j.data || {})[g.id], at = (j.at || {})[g.id] || 0;
       if (s.user !== u) {
-        if (!s.user && !srv) { // máy dùng từ trước khi có đồng bộ, máy chủ chưa có gì → nhận dữ liệu trên máy là của em, gửi lên
-          var d = ldata(g), dirty = {}; Object.keys(d).forEach(function (k) { dirty[k] = 1; });
-          setSst(g, { user: u, at: 0, dirty: dirty }); return;
+        if (!s.user) { // máy dùng từ trước khi có đồng bộ → GỘP: giữ dữ liệu trên máy, thêm bài máy chủ có mà máy chưa có;
+          // cùng 1 bài thì giữ bản tiến xa hơn (đã xong > đã nộp lần 1 > đang làm), rồi gửi phần của máy lên
+          var d = ldata(g), dirty = {}, ch2 = false; srv = srv || {};
+          applying = true;
+          try { Object.keys(srv).forEach(function (k) { if (!g.keys.test(k)) return;
+            if (!(k in d) && localStorage.getItem(k) == null) { rawSet.call(localStorage, k, srv[k]); ch2 = true; }
+            else if ((k in d) && rankOf(srv[k]) > rankOf(d[k])) { rawSet.call(localStorage, k, srv[k]); delete d[k]; ch2 = true; } }); }
+          finally { applying = false; }
+          Object.keys(d).forEach(function (k) { if (srv[k] !== d[k]) dirty[k] = 1; });
+          setSst(g, { user: u, at: at, dirty: dirty }); if (ch2 && g === SITE && !siteChanged) siteChanged = 'data'; return;
         }
         wipe(g); applyData(g, srv || {}, {}); setSst(g, { user: u, at: at, dirty: {} });
         if (g === SITE) siteChanged = 'owner'; return;
