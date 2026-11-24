@@ -21,6 +21,13 @@
   // thứ tự vẽ (dưới → trên)
   var Z = ['wings', 'body', 'bottom', 'shoes', 'top', 'dress', 'set', 'face', 'hair', 'glasses', 'hat', 'bag', 'hand', 'pet', 'petacc'];
   var RAR = { c: 'Common', r: 'Rare', e: 'Epic', x: 'Exquisite' };
+  // Sự kiện (khớp AV_EVENTS trong Code.gs): đồ giới hạn thời gian
+  var EVENTS = [{ id: 'xmas', icon: '🎄', name: 'Christmas Event', start: '2026-12-01', end: '2026-12-31' }];
+  var todayStr = function () { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+  var eventNow = function () { var t = todayStr(); return EVENTS.filter(function (e) { return e.start <= t && e.end >= t; })[0] || null; };
+  var eventSoon = function () { var t = new Date(), lim = new Date(t.getTime() + 10 * 86400000); return EVENTS.filter(function (e) { return new Date(e.start + 'T00:00:00') > t && new Date(e.start + 'T00:00:00') <= lim; })[0] || null; };
+  var daysTo = function (e) { return Math.max(1, Math.ceil((new Date(e.start + 'T00:00:00') - new Date()) / 86400000)); };
+  var daysLeft = function (e) { return Math.max(0, Math.round((new Date(e.end + 'T23:59:59') - new Date()) / 86400000)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
   function register(style, cat) { CATS[style] = cat; }
@@ -128,7 +135,18 @@
     '.yw-earn{font-size:13.5px;line-height:1.6;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 14px;margin-top:14px}' +
     '.yw-earn b{color:#ffcf3f}.yw-vi{display:block;font-size:12px;opacity:.7;font-style:italic;margin-top:2px}.yw-earn .yw-vi{margin-top:6px}' +
     '.yw-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:12px;z-index:2147483002;font-weight:700;max-width:90vw;text-align:center}' +
-    '.yav-head{border-radius:50%}';
+    '.yav-head{border-radius:50%}' +
+    '.yw-ev{background:linear-gradient(135deg,#c62828,#2e7d32);color:#fff;border-radius:14px;padding:10px 12px;margin:0 0 10px;font-weight:800;display:flex;align-items:center;gap:8px}' +
+    '.yw-ev small{display:block;font-weight:600;opacity:.9}.yw-ev b{font-size:16px}' +
+    '.yw-ltd{position:absolute;top:6px;right:6px;background:#e53935;color:#fff;font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:99px}' +
+    '.yt{position:fixed;inset:0;z-index:2147483003;cursor:default}.yw-ov.touring .yw-left{position:static}' +
+    '.yt-hole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,6,25,.72);pointer-events:none;transition:all .25s;outline:3px solid #ffcf3f;outline-offset:3px;animation:yt-glow 1.2s infinite}' +
+    '@keyframes yt-glow{50%{outline-color:#fff}}' +
+    '.yt-tip{position:fixed;left:12px;right:12px;max-width:420px;margin:0 auto;background:#fff;color:#1d1b33;border-radius:16px;padding:14px 16px;font-family:var(--ya-font,system-ui);box-shadow:0 12px 40px rgba(0,0,0,.45);font-size:15px;line-height:1.45}' +
+    '.yt-tip .yt-st{display:block;margin:0 0 2px}.yt-tip b.yt-h{display:block;font-size:17px;margin-bottom:4px}.yt-tip .yt-vi{display:block;font-size:12.5px;font-style:italic;color:#5b5677;margin-top:6px}' +
+    '.yt-tip .yt-st{font-size:12px;color:#8a85a6;font-weight:700}.yt-tip .yt-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}' +
+    '.yt-tip button{border:0;border-radius:12px;padding:9px 16px;font:inherit;font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(135deg,#ff2e88,#8f6cf6)}' +
+    '.yt-tip .yt-tap{color:#c2185b;font-weight:800;font-size:13px}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
 
   /* ---------------- máy chủ ---------------- */
@@ -174,11 +192,12 @@
         var owns = function (id) { var it = cat.items[id]; return vis(it) && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
         var thumb = function (it) { it = variant(it, G()); return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
         var refetch = function () { wallet(style, G()).then(function (j) { if (j.ok) { W = j; draw(); } }).catch(function () {}); };
+        var touring = !!opts.tour;
         function close(v) { ov.remove(); try { document.documentElement.style.overflow = ''; } catch (_) {} resolve(v); }
         function draw() {
           var dirty = JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved));
           var h = '<div class="yw"><div class="yw-top"><h2>' + (creating ? '✨ Create your character' : '👕 Wardrobe') + '</h2>' +
-            '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating ? '' : '<button class="yw-x" data-x aria-label="Close">✕</button>') + '</div>' +
+            '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating || touring ? '' : '<button class="yw-x" data-x aria-label="Close">✕</button>') + '</div>' +
             '<div class="yw-left"><div class="yw-stage">' + render(cat, cur) + '</div>' +
             (W ? '<div class="yw-stat"><span>🔥 ' + W.streak + '-week streak' + (W.mult > 1 ? ' (×' + W.mult + ' coins)' : '') + '</span><span>🎁 ' + W.freeChests + ' free chest' + (W.freeChests === 1 ? '' : 's') + '</span></div>' : '') +
             '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save character') + '</button></div><div class="yw-right">';
@@ -198,12 +217,20 @@
           } else if (tab === 'shop') {
             if (!W) h += '<p class="yw-note">Loading the shop…</p>';
             else {
-              var fresh = W.fresh || [];
+              var fresh = W.fresh || [], ev = W.event;
+              var soon = !ev && eventSoon();
+              if (soon) { // xem trước đồ sự kiện sắp mở (khoá, chưa thử/mua được)
+                var peek = items(function (it) { return it.ev === soon.id && vis(it); });
+                h += '<div class="yw-ev"><span style="font-size:28px">' + soon.icon + '</span><div><b>' + esc(soon.name) + ' starts in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!</b><small>Sneak peek: limited items from ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '. Save your coins! 🪙</small></div></div>' +
+                  '<div class="yw-grid" style="margin-bottom:14px">' + peek.map(function (id) { var it = cat.items[id];
+                    return '<div class="yw-it lock yw-r-' + (it.rar || 'c') + '"><span class="yw-ltd">SOON ❄️</span>' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (it.src === 'chest' ? '💎 Chest' : '🪙 ' + it.price) + '</small><span class="yw-need">Coming ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '</span></div>'; }).join('') + '</div>';
+              }
+              if (ev) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>' + esc(ev.name) + '</b><small>Limited Christmas items · ends in ' + daysLeft(ev) + ' day' + (daysLeft(ev) === 1 ? '' : 's') + '!</small></div></div>';
               var list = W.shop.filter(function (id) { return cat.items[id] && vis(cat.items[id]); })
-                .sort(function (a, b) { return (fresh.indexOf(b) >= 0) - (fresh.indexOf(a) >= 0) || cat.items[a].price - cat.items[b].price; });
+                .sort(function (a, b) { var ea = !!cat.items[a].ev, eb = !!cat.items[b].ev; return (eb - ea) || (fresh.indexOf(b) >= 0) - (fresh.indexOf(a) >= 0) || cat.items[a].price - cat.items[b].price; });
               h += '<p class="yw-note">New items arrive every Monday! Tap an item you can afford to try it on or buy it.<span class="yw-vi">Mỗi thứ Hai shop có thêm hàng mới. Đủ xu thì chạm vào món để thử hoặc mua.</span></p><div class="yw-grid">' + list.map(function (id) {
                 var it = cat.items[id], have = W.owned.indexOf(id) >= 0, can = W.coins >= it.price;
-                var tag = fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '';
+                var tag = (fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '') + (it.ev ? '<span class="yw-ltd">LIMITED ❄️</span>' : '');
                 var cls = 'yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + (!have && !can ? ' lock' : '');
                 var foot = have ? '<button class="yw-buy" data-try="' + id + '">✔ Owned · wear</button>'
                   : !can ? '<span class="yw-need">🔒 Need ' + (it.price - W.coins) + ' more 🪙</span><button class="yw-buy" disabled>🪙 ' + it.price + '</button>'
@@ -213,7 +240,8 @@
               }).join('') + '</div>' + (list.length ? '' : '<p class="yw-note">Nothing here yet. New items arrive every Monday!</p>');
             }
           } else {
-            var left = items(function (it, id) { return it.src === 'chest' && vis(it) && !(it.rel && it.rel > new Date().toISOString().slice(0, 10)) && !(W && W.owned.indexOf(id) >= 0); }).length;
+            var left = items(function (it, id) { return it.src === 'chest' && vis(it) && !(it.rel && it.rel > todayStr()) && !(it.end && it.end < todayStr()) && !(W && W.owned.indexOf(id) >= 0); }).length;
+            if (W && W.event) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>Christmas items inside!</b><small>Snow Queen, Ice Prince, snowflake wings… until ' + esc(W.event.end.slice(8) + '/' + W.event.end.slice(5, 7)) + '</small></div></div>';
             h += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
               '<p class="yw-note">The Exquisite Chest holds <b>exclusive</b> items you can’t buy in the shop, and it never gives you something you already have. ' + left + ' item' + (left === 1 ? '' : 's') + ' left to find.<span class="yw-vi">Rương Exquisite chứa đồ độc quyền không bán ở shop, và luôn ra món em chưa có.</span></p>' +
               '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Open free chest (' + (W ? W.freeChests : 0) + ')</button>' +
@@ -223,6 +251,7 @@
           if (!creating) h += '<div class="yw-earn"><b>How to earn 🪙</b><br>📚 Every lesson: 30 coins for handing it in + up to 50 for your first-try score<br>✏️ Fix all mistakes on try 2: +20 · 🎯 Stay on the page: +10 · 💯 All correct first time: +20<br>' +
             '🔥 Hand in every week: coins ×1.2 → ×1.5<br>🎮 Word mini games: +5 coins a round (3 rounds a day)' +
             '<span class="yw-vi">Mỗi bài: 30 xu nộp bài + đến 50 xu theo điểm lần 1 · sửa hết lỗi ở lần 2 +20 · không rời trang +10 · đúng hết ngay +20 · tuần nào cũng nộp bài: xu ×1.2 → ×1.5 · mini game ôn từ +5 xu/lượt (3 lượt/ngày)</span></div>';
+          ov.classList.toggle('touring', touring); // hướng dẫn: bỏ dính phần nhân vật để không che nút
           ov.innerHTML = h + '</div></div>';
           bind();
         }
@@ -269,10 +298,81 @@
           }; });
         }
         draw();
+        if (touring) setTimeout(function () {
+          runTourInside(ov, { claim: function () {
+            return api({ action: 'tut' }).then(function (j) { if (j && j.ok && j.added) toast('🎉 +' + j.added + ' coins! Happy shopping!'); try { localStorage.setItem('yumi-tut-' + (A().me() || {}).user, '1'); } catch (_) {} })
+              .catch(function () {}).then(function () { return wallet(style, G()); }).then(function (k) { touring = false; tab = 'shop'; if (k && k.ok) W = k; draw(); });
+          } });
+        }, 500);
         wallet(style, G()).then(function (j) { if (j.ok) { W = j; draw(); } else if (j.auth) { A().authFailed({}).then(function () { return wallet(style, G()); }).then(function (k) { if (k && k.ok) { W = k; draw(); } }); } }).catch(function () {});
       });
     });
   }
+  /* ---------------- HƯỚNG DẪN TÂN THỦ (bắt buộc, 1 lần; máy chủ nhớ qua lệnh tut) ----------------
+   * step: { sel: CSS của chỗ cần bấm, root: phần tử chứa, title, text, vi, act: 'tap' (phải bấm đúng chỗ) | 'next' } */
+  function coach(step, n, total) {
+    return new Promise(function (resolve) {
+      injectCss();
+      var layer = document.createElement('div'); layer.className = 'yt';
+      var hole = document.createElement('div'); hole.className = 'yt-hole';
+      var tip = document.createElement('div'); tip.className = 'yt-tip';
+      tip.innerHTML = '<span class="yt-st">STEP ' + n + ' / ' + total + '</span><b class="yt-h">' + step.title + '</b>' + step.text + (step.vi ? '<span class="yt-vi">' + step.vi + '</span>' : '') +
+        '<div class="yt-row">' + (step.act === 'tap' ? '<span class="yt-tap">👆 Tap the glowing button</span>' : '<span></span>') + (step.act === 'tap' ? '' : '<button class=\"yt-next\" type="button">' + (step.btn || 'Next ▶') + '</button>') + '</div>';
+      layer.appendChild(hole); layer.appendChild(tip); document.body.appendChild(layer);
+      var target = function () { return step.sel ? document.querySelector(step.sel) : null; };
+      var place = function () {
+        var t = target();
+        if (!t) { hole.style.cssText = 'left:50%;top:40%;width:0;height:0'; tip.style.top = '30%'; tip.style.bottom = 'auto'; return; }
+        var r = t.getBoundingClientRect(), pad = 6;
+        hole.style.left = (r.left - pad) + 'px'; hole.style.top = (r.top - pad) + 'px'; hole.style.width = (r.width + pad * 2) + 'px'; hole.style.height = (r.height + pad * 2) + 'px';
+        if (r.top + r.height / 2 > innerHeight / 2) { tip.style.top = 'auto'; tip.style.bottom = (innerHeight - r.top + 16) + 'px'; }
+        else { tip.style.bottom = 'auto'; tip.style.top = (r.bottom + 16) + 'px'; }
+      };
+      var t0 = target(); if (t0 && t0.scrollIntoView) t0.scrollIntoView({ block: step.block || 'center' });
+      setTimeout(place, 60); var iv = setInterval(place, 300);
+      var done = function () { clearInterval(iv); layer.remove(); resolve(); };
+      layer.addEventListener('click', function (e) {
+        if (e.target.closest('.yt-tip button')) { done(); return; }
+        if (step.act !== 'tap') return;
+        var t = target(); if (!t) return; var r = t.getBoundingClientRect();
+        if (e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8) { done(); setTimeout(function () { t.click(); }, 30); }
+      });
+    });
+  }
+  var TOUR_TOTAL = 8;
+  function tour(opts) { // bước 1 ở trang chủ → mở tủ đồ chế độ tour (các bước còn lại chạy trong tủ đồ)
+    return coach({ sel: '[data-yw-btn]', act: 'tap', title: '👋 Your character has a WARDROBE!', text: 'Tap the glowing <b>Wardrobe</b> button to see your clothes, the shop and the treasure chest.',
+      vi: 'Nhân vật của em có tủ đồ riêng! Bấm nút Wardrobe đang sáng để xem quần áo, cửa hàng và rương báu.' }, 1, TOUR_TOTAL)
+      .then(function () { return new Promise(function (r) { var n = 0, iv = setInterval(function () { var ov = document.querySelector('.yw-ov'); if (ov || ++n > 25) { clearInterval(iv); r(ov); } }, 200); }); }) // chờ tủ đồ mở (≤5s)
+      .then(function (ov) { return ov ? waitClose(ov) : null; });
+  }
+  function waitClose(ov) { return new Promise(function (r) { var iv = setInterval(function () { if (!document.body.contains(ov)) { clearInterval(iv); r(); } }, 400); }); }
+  function runTourInside(ov, ctx) { // ctx: { setTab(t), claim() → Promise }
+    var q = function (s) { return '.yw-ov ' + s; };
+    var steps = [
+      { sel: q('.yw-slots'), act: 'next', title: '👕 Your clothes', text: 'Tap a category (Hair, Tops, Shoes…), then tap an item to wear it. Tap <b>Save character</b> when you like your look!',
+        vi: 'Chọn loại đồ (tóc, áo, giày…) rồi chạm vào món để mặc. Ưng ý thì bấm Save character để lưu.' },
+      { sel: q('[data-t=shop]'), act: 'tap', title: '🛍️ The Shop', text: 'Buy new clothes, pets and accessories with your coins 🪙. Tap <b>Shop</b>!',
+        vi: 'Shop bán quần áo, thú cưng, phụ kiện mới. Em dùng xu để mua. Bấm Shop nhé!' },
+      { sel: q('.yw-grid'), act: 'next', block: 'start', title: '👀 Try on or 🪙 Buy', text: 'If you have enough coins, tap an item to <b>Try on</b> or <b>Buy</b> it. 🔒 means you need more coins. New items arrive every Monday!',
+        vi: 'Đủ xu thì chạm vào món để thử hoặc mua. Món có 🔒 là em chưa đủ xu. Thứ Hai nào cũng có hàng mới.' },
+      { sel: q('.yw-earn'), act: 'next', title: '🪙 How to earn coins', text: 'Do your homework every week! You get coins for every lesson, more for good scores, fixing mistakes and staying focused. Hand in every week for a bonus ×1.5!',
+        vi: 'Làm bài tập về nhà đều đặn: mỗi bài đều có xu, điểm cao, sửa hết lỗi, tập trung không rời trang được thêm xu. Tuần nào cũng nộp bài thì xu nhân đến ×1.5!' },
+      { sel: q('[data-t=chest]'), act: 'tap', title: '💎 The Exquisite Chest', text: 'Now tap <b>Chest</b> to see the treasure chest!', vi: 'Giờ bấm Chest để xem rương báu nhé!' },
+      { sel: q('.yw-chest'), act: 'next', title: '💎 Exclusive treasures', text: 'The chest has special items you can’t buy in the shop. You get a FREE chest for every 5 lessons!',
+        vi: 'Rương chứa đồ độc quyền không bán ở shop. Cứ 5 bài tập em được tặng 1 rương miễn phí!' },
+      { sel: null, act: 'next', btn: 'Claim 50 🪙', title: '🎉 You’re ready!', text: 'Here are <b>50 free coins</b> to start shopping. Have fun styling your character!',
+        vi: 'Em đã sẵn sàng! Cô tặng 50 xu để em bắt đầu mua sắm.' }
+    ];
+    var i = 0;
+    var next = function () {
+      if (i >= steps.length) return ctx.claim();
+      var s = steps[i]; i++;
+      return new Promise(function (r) { setTimeout(r, 250); }).then(function () { return coach(s, i + 1, TOUR_TOTAL); }).then(next);
+    };
+    return next();
+  }
+
   /** Lần đầu: chưa có nhân vật bộ này → bắt tạo (chỉ đồ miễn phí). */
   function ensure(opts) {
     opts = opts || {};
@@ -280,12 +380,25 @@
     if (!A() || !A().me()) return Promise.resolve(null);
     var o = myOutfit(style);
     if (!o) return open(Object.assign({}, opts, { create: true }));
-    return load(style).then(function (cat) { var b = cat.items[o.body]; return b && !b.hide ? null : open(Object.assign({}, opts, { create: true })); });
+    return load(style).then(function (cat) {
+      var b = cat.items[o.body];
+      if (!b || b.hide) return open(Object.assign({}, opts, { create: true }));
+      var me = A().me(); var key = 'yumi-tut-' + (me && me.user);
+      try { if (localStorage.getItem(key) === '1') return null; } catch (_) {}
+      return wallet(style, b.g || '').then(function (w) {
+        if (!w || !w.ok || w.tut || (w.owned && w.owned.length)) { try { localStorage.setItem(key, '1'); } catch (_) {} return null; } // đã xem hướng dẫn / đã từng mua đồ → bỏ qua
+        if (!document.querySelector('[data-yw-btn]')) return null; // trang chưa có nút tủ đồ
+        var btn = document.querySelector('[data-yw-btn]'); var orig = btn.onclick;
+        btn.onclick = function () { btn.onclick = orig; open(Object.assign({}, opts, btn._ywOpts || {}, { tour: true })); }; // lần bấm trong hướng dẫn → mở tủ đồ chế độ tour
+        return tour(opts).then(function () { return null; });
+      }).catch(function () { return null; });
+    });
   }
   function button(opts) {
     injectCss();
     var b = document.createElement('button'); b.type = 'button'; b.className = 'ya-trophy'; b.style.background = 'linear-gradient(135deg,#7c4dff,#ff2e88)';
-    b.innerHTML = '👕 <span>' + esc((opts && opts.label) || 'Wardrobe') + '</span>';
+    var ev = eventNow(); b.setAttribute('data-yw-btn', '1'); b._ywOpts = opts || {};
+    b.innerHTML = (ev ? ev.icon : '👕') + ' <span>' + esc((opts && opts.label) || 'Wardrobe') + '</span>';
     b.onclick = function () { open(opts); };
     return b;
   }
