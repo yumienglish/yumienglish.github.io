@@ -136,6 +136,10 @@
     '.yw-earn b{color:#ffcf3f}.yw-vi{display:block;font-size:12px;opacity:.7;font-style:italic;margin-top:2px}.yw-earn .yw-vi{margin-top:6px}' +
     '.yw-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:12px;z-index:2147483002;font-weight:700;max-width:90vw;text-align:center}' +
     '.yav-head{border-radius:50%}' +
+    // giao diện sáng (VD lớp KET): khung/viền tối nhạt thay cho trắng mờ
+    '.yw-light .yw-x,.yw-light .yw-stat span,.yw-light .yw-tabs,.yw-light .yw-it,.yw-light .yw-slots button,.yw-light .yw-earn{background:rgba(40,20,90,.06);border-color:rgba(40,20,90,.14)}' +
+    '.yw-light .yw-it.on{border-color:var(--ya-acc,#ff2e88)}.yw-light .yw-slots button.on{background:var(--ya-text,#22303c);color:#fff}.yw-light .yw-stage{background:radial-gradient(circle at 50% 40%,#fff,rgba(255,255,255,.4) 70%)}' +
+    '.yw-light .yw-earn b{color:#d9480f}.yw-light .yw-need{color:#d9480f}.yw-light .yw-left{background:var(--ya-bg)}' +
     '.yw-ev{background:linear-gradient(135deg,#c62828,#2e7d32);color:#fff;border-radius:14px;padding:10px 12px;margin:0 0 10px;font-weight:800;display:flex;align-items:center;gap:8px}' +
     '.yw-ev small{display:block;font-weight:600;opacity:.9}.yw-ev b{font-size:16px}' +
     '.yw-ltd{position:absolute;top:6px;right:6px;background:#e53935;color:#fff;font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:99px}' +
@@ -175,6 +179,7 @@
         var ov = document.createElement('div'); ov.className = 'yw-ov';
         var th = opts.theme || {};
         ['bg', 'text', 'acc', 'acc2', 'font', 'head'].forEach(function (k) { if (th[k]) ov.style.setProperty('--ya-' + k, th[k]); });
+        if (th.bg && !th.dark) ov.classList.add('yw-light'); // trang nền sáng
         document.body.appendChild(ov);
         try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
         var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, sel = '';
