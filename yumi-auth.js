@@ -42,6 +42,153 @@
       .then(function (r) { return r.json(); });
   }
 
+
+  /* ---------------- TIẾN ĐỘ THEO TÀI KHOẢN (không phụ thuộc máy) ----------------
+   * Mỗi trang lưu tiến độ trong localStorage như cũ. Script này:
+   *  - ghi nhớ dữ liệu trên máy là của ai (yumi-sync-<nhóm> = {user, at, dirty});
+   *  - em khác đăng nhập → dọn dữ liệu em trước (cả bản ghi âm chưa nộp) rồi tải dữ liệu của em từ máy chủ;
+   *  - trang ghi localStorage → em ngừng thao tác 10 giây thì gửi phần đổi lên máy chủ (đóng trang / đăng xuất thì gửi ngay).
+   */
+  var GROUPS = [
+    { id: 'ket', path: /^\/KET\//i, keys: /^ket-/, idb: ['ket-selfstudy'], style: 'ket' },
+    { id: 'pet', path: /^\/PET\//i, keys: /^pet-/, idb: ['pet-adventure'], style: 'teen' },
+    { id: 'b2', path: /^\/B2-First\//i, keys: /^b2-/, idb: ['b2-adventure'], style: 'teen' },
+    { id: 'a1', path: /^\/A1-KID\//i, keys: /^(a1kid-|btvn-listening-trainer-a1-)/, idb: [] },
+    { id: 'ielts', path: /^\/ielts-homework\//i, keys: /^(btvn-(?!listening-trainer-a1)|ielts-)/, idb: ['btvn-recordings'] }
+  ];
+  var DEVICE_ONLY = /-(sound|hi)$/, NO_SYNC = /-(sound|hi|tease|rec)$/, SYNC_PREFIX = 'yumi-sync-';
+  var SITE = null; GROUPS.forEach(function (g) { if (g.path.test(location.pathname)) SITE = g; });
+  var hasLS = (function () { try { return !!window.localStorage && !!window.Storage; } catch (_) { return false; } })();
+  var rawSet = hasLS ? Storage.prototype.setItem : null, rawDel = hasLS ? Storage.prototype.removeItem : null, applying = false;
+  function gById(id) { return GROUPS.filter(function (g) { return g.id === id; })[0]; }
+  function groupOf(k) { for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].keys.test(k)) return GROUPS[i]; return null; }
+  function syncable(k, v) { return !NO_SYNC.test(k) && (v == null || (String(v).indexOf('data:image') < 0 && String(v).length <= 60000)); } // ảnh tự chụp chỉ ở trên máy
+  function sst(g) { return LS.get(SYNC_PREFIX + g.id) || {}; }
+  function setSst(g, s) { try { rawSet.call(localStorage, SYNC_PREFIX + g.id, JSON.stringify(s)); } catch (_) {} }
+  function lkeys(g) { var out = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && g.keys.test(k)) out.push(k); } } catch (_) {} return out; }
+  function ldata(g) { var d = {}; lkeys(g).forEach(function (k) { var v = localStorage.getItem(k); if (syncable(k, v)) d[k] = v; }); return d; }
+  function wipe(g) {
+    applying = true; lkeys(g).forEach(function (k) { if (!DEVICE_ONLY.test(k)) try { rawDel.call(localStorage, k); } catch (_) {} }); applying = false;
+    (g.idb || []).forEach(function (n) { try { indexedDB.deleteDatabase(n); } catch (_) {} });
+  }
+  // ghi dữ liệu máy chủ xuống máy (giữ phần đổi chưa gửi); true nếu có gì khác
+  function applyData(g, data, dirty) {
+    var changed = false; dirty = dirty || {}; data = data || {}; applying = true;
+    try {
+      lkeys(g).forEach(function (k) { if (DEVICE_ONLY.test(k) || dirty[k] || (k in data) || !syncable(k, localStorage.getItem(k))) return; rawDel.call(localStorage, k); changed = true; });
+      Object.keys(data).forEach(function (k) { if (!g.keys.test(k) || dirty[k] || localStorage.getItem(k) === data[k]) return; try { rawSet.call(localStorage, k, data[k]); changed = true; } catch (_) {} });
+    } finally { applying = false; }
+    return changed;
+  }
+  function mark(k) {
+    if (applying) return; var g = groupOf(k), m = g && me(); if (!m) return;
+    var s = sst(g); if (s.user !== m.user) return; // máy chưa xác định chủ → chờ lần tải đầu
+    s.dirty = s.dirty || {}; s.dirty[k] = 1; setSst(g, s); schedulePush(10000);
+  }
+  if (hasLS) {
+    Storage.prototype.setItem = function (k, v) { rawSet.call(this, k, v); try { if (this === window.localStorage) mark(String(k)); } catch (_) {} };
+    Storage.prototype.removeItem = function (k) { rawDel.call(this, k); try { if (this === window.localStorage) mark(String(k)); } catch (_) {} };
+  }
+  var pushTimer = null, pushing = false, firstWait = 0, urgentDue = 0;
+  // gửi khi em ngừng thao tác 10 giây (gõ liên tục thì tối đa 60 giây/lần); lượt gửi gấp (≤1,5 giây) không bị lùi; đóng trang / đăng xuất → gửi ngay
+  function schedulePush(ms) {
+    var now = Date.now(); if (pushTimer && urgentDue && urgentDue <= now + ms) return;
+    if (!firstWait) firstWait = now; clearTimeout(pushTimer);
+    var wait = Math.max(0, Math.min(ms, firstWait + 60000 - now)); urgentDue = ms <= 1500 ? now + wait : 0;
+    pushTimer = setTimeout(function () { pushTimer = null; urgentDue = 0; firstWait = 0; pushNow(false); }, wait);
+  }
+  function pendingGroups(u) {
+    var out = null;
+    GROUPS.forEach(function (g) {
+      var s = sst(g); if (s.user !== u || !s.dirty) return; var ks = Object.keys(s.dirty); if (!ks.length) return;
+      var set = {}, del = [], snap = {};
+      ks.forEach(function (k) { var v = localStorage.getItem(k); snap[k] = v; if (v == null) del.push(k); else if (syncable(k, v)) set[k] = v; });
+      (out = out || {})[g.id] = { set: set, del: del, snap: snap };
+    });
+    return out;
+  }
+  function pushNow(keepalive) {
+    var a = auth(); if (!a || !hasLS) return Promise.resolve();
+    if (pushing && !keepalive) { schedulePush(1500); return Promise.resolve(); }
+    var u = a.me.user, pg = pendingGroups(u); if (!pg) return Promise.resolve();
+    var groups = {}; Object.keys(pg).forEach(function (id) { groups[id] = { set: pg[id].set, del: pg[id].del }; });
+    var body = JSON.stringify({ action: 'progress', token: a.token, groups: groups });
+    var o = { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body };
+    if (keepalive && body.length < 60000) o.keepalive = true;
+    pushing = true;
+    return fetch(SCRIPT_URL, o).then(function (r) { return r.json(); }).then(function (j) {
+      pushing = false; if (!j || !j.ok) { if (!(j && j.auth)) schedulePush(20000); return; }
+      Object.keys(pg).forEach(function (id) {
+        var g = gById(id), s = sst(g); if (s.user !== u) return; s.dirty = s.dirty || {};
+        Object.keys(pg[id].snap).forEach(function (k) { if (localStorage.getItem(k) === pg[id].snap[k]) delete s.dirty[k]; }); // đổi tiếp trong lúc gửi → gửi lần sau
+        if (j.at && j.at[id]) s.at = j.at[id];
+        setSst(g, s);
+      });
+      if (pendingGroups(u)) schedulePush(1500);
+    }).catch(function () { pushing = false; schedulePush(20000); });
+  }
+  function pullData() {
+    var a = auth(); if (!a) return Promise.reject(new Error('no login'));
+    var t = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 9000); });
+    return Promise.race([fetch(SCRIPT_URL + '?action=progress&token=' + encodeURIComponent(a.token)).then(function (r) { return r.json(); }), t]);
+  }
+  // so dữ liệu máy chủ với máy → 'owner' (trang đang mở đổi chủ) / 'data' (dữ liệu trang đổi) / ''
+  function reconcile(j, u) {
+    var siteChanged = '';
+    GROUPS.forEach(function (g) {
+      var s = sst(g), srv = (j.data || {})[g.id], at = (j.at || {})[g.id] || 0;
+      if (s.user !== u) {
+        if (!s.user && !srv) { // máy dùng từ trước khi có đồng bộ, máy chủ chưa có gì → nhận dữ liệu trên máy là của em, gửi lên
+          var d = ldata(g), dirty = {}; Object.keys(d).forEach(function (k) { dirty[k] = 1; });
+          setSst(g, { user: u, at: 0, dirty: dirty }); return;
+        }
+        wipe(g); applyData(g, srv || {}, {}); setSst(g, { user: u, at: at, dirty: {} });
+        if (g === SITE) siteChanged = 'owner'; return;
+      }
+      if (srv && at > (s.at || 0)) { var ch = applyData(g, srv, s.dirty); s.at = at; setSst(g, s); if (ch && g === SITE && !siteChanged) siteChanged = 'data'; }
+    });
+    if (j.me && j.me.user === u) { var a = auth(); if (a) { a.me = j.me; LS.set(KEY, a); useStyle(); } }
+    if (pendingGroups(u)) schedulePush(500);
+    return siteChanged;
+  }
+  // đăng nhập xong: tải tiến độ của em trước khi trang chạy (initial) hoặc tải rồi mở lại trang (đang dùng dở)
+  function syncAfterLogin(initial) {
+    var m = me(); if (!m || !hasLS) return Promise.resolve();
+    useStyle();
+    return pullData().then(function (j) {
+      if (!j || !j.ok) throw new Error('bad');
+      var ch = reconcile(j, m.user);
+      if (ch === 'owner' && !initial) { location.reload(); return new Promise(function () {}); }
+    }).catch(function () { // mạng lỗi: ít nhất không để em này thấy dữ liệu của em khác
+      GROUPS.forEach(function (g) { var s = sst(g); if (s.user && s.user !== m.user) { wipe(g); setSst(g, { user: m.user, at: 0, dirty: {} }); } });
+    });
+  }
+  // mỗi lần mở trang (đã đăng nhập sẵn)
+  function syncOnLoad() {
+    var m = me(); if (!m || !hasLS) return;
+    if (SITE) { var s = sst(SITE); if (s.user && s.user !== m.user) { wipe(SITE); setSst(SITE, { user: m.user, at: 0, dirty: {} }); } } // dọn trước khi trang đọc
+    useStyle();
+    pullData().then(function (j) {
+      if (!j || !j.ok || !me() || me().user !== m.user) return;
+      if (reconcile(j, m.user)) {
+        var key = 'yumi-sync-reload', last = 0; try { last = Number(sessionStorage.getItem(key)) || 0; } catch (_) {}
+        if (Date.now() - last > 60000) { try { sessionStorage.setItem(key, String(Date.now())); } catch (_) {} location.reload(); }
+      }
+    }).catch(function () {});
+  }
+  // nhân vật: mỗi bộ (teen / ket) giữ riêng → vào trang nào hiện nhân vật bộ đó
+  function useStyle() {
+    var a = auth(); if (!a || !SITE || !SITE.style) return;
+    var o = a.me.outfits && a.me.outfits[SITE.style];
+    if (!o || a.me.avatar === o) return;
+    a.me.avatar = o; LS.set(KEY, a);
+    try { post({ action: 'outfit', token: a.token, style: SITE.style, outfit: JSON.parse(o.slice(o.indexOf(':') + 1)) }).catch(function () {}); } catch (_) {}
+  }
+  if (hasLS) {
+    window.addEventListener('pagehide', function () { pushNow(true); });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') pushNow(true); });
+  }
+
   /* ---------------- CSS (chỉ trong .ya-*) ---------------- */
   var CSS = '' +
     '.ya-ov{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;' +
@@ -266,7 +413,7 @@
         LS.set(KEY, { token: j.token, me: j.me, at: Date.now() });
         ov.remove(); loginOpen = null;
         try { document.documentElement.style.overflow = ''; if (document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); } catch (_) {}
-        resolve(j.me);
+        syncAfterLogin(!!opts._initial).then(function () { resolve(me() || j.me); });
       };
       var run = function (f, body, label, onFail) {
         var err = f.querySelector('.ya-err'), btn = f.querySelector('.ya-btn');
@@ -308,7 +455,7 @@
   function requireLogin(opts) {
     var m = me();
     if (m) return Promise.resolve(m);
-    return loginScreen(opts).then(function (m2) { if (opts && opts.onLogin) opts.onLogin(m2); return m2; });
+    return loginScreen(Object.assign({}, opts || {}, { _initial: true })).then(function (m2) { if (opts && opts.onLogin) opts.onLogin(m2); return m2; });
   }
 
   /* ---------------- BẢNG XẾP HẠNG ---------------- */
@@ -491,7 +638,11 @@
     if (a) LS.set(KEY, { token: '', me: null, last: a.me && (a.me.name || a.me.user) });
     return loginScreen(Object.assign({}, opts || {}, { sub: 'Please log in again to send your work 📨' }));
   }
-  function logout() { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); }
+  function logout() { // gửi nốt tiến độ rồi mới đăng xuất
+    var bye = function () { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); };
+    var t = setTimeout(bye, 4000); pushNow(false).then(function () { clearTimeout(t); bye(); }, function () { clearTimeout(t); bye(); });
+  }
+  if (ready()) syncOnLoad();
 
   // nạp sẵn avatar.js (nhân vật + tủ đồ) để bảng xếp hạng vẽ được nhân vật
   (function () {
@@ -504,5 +655,6 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
   })();
   window.YumiAuth = { ready: ready, me: me, token: token, require: requireLogin, login: loginScreen, board: board, autoBoard: autoBoard,
-    trophy: trophy, home: home, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL };
+    trophy: trophy, home: home, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL,
+    syncNow: function () { return pushNow(false); } };
 })();

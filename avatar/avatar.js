@@ -163,11 +163,15 @@
     return fetch(A().url + '?action=wallet&style=' + encodeURIComponent(style) + '&g=' + encodeURIComponent(g || '') + '&token=' + encodeURIComponent(A().token())).then(function (r) { return r.json(); });
   }
   function toast(msg) { var t = document.createElement('div'); t.className = 'yw-toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600); }
-  function myOutfit(style) {
-    var me = A() && A().me(); var p = me && parse(me.avatar);
+  function myOutfit(style) { // nhân vật bộ này (mỗi bộ teen / ket lưu riêng)
+    var me = A() && A().me(); if (!me) return null;
+    var p = me.outfits && me.outfits[style] ? parse(me.outfits[style]) : null;
+    if (p && p.style === style) return p.o;
+    p = parse(me.avatar);
     return p && p.style === style ? p.o : null;
   }
-  function setMyOutfit(str) { try { var a = JSON.parse(localStorage.getItem('yumi-auth')); if (a && a.me) { a.me.avatar = str; localStorage.setItem('yumi-auth', JSON.stringify(a)); } } catch (_) {} }
+  function setMyOutfit(str) { try { var a = JSON.parse(localStorage.getItem('yumi-auth')); var p = parse(str);
+    if (a && a.me) { a.me.avatar = str; if (p) { a.me.outfits = a.me.outfits || {}; a.me.outfits[p.style] = str; } localStorage.setItem('yumi-auth', JSON.stringify(a)); } } catch (_) {} }
 
   /* ---------------- Tủ đồ / Shop / Rương ---------------- */
   function open(opts) {
