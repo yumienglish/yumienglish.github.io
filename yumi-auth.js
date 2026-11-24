@@ -108,6 +108,25 @@
     '.ya-foot{text-align:center;font-size:12px;opacity:.55;margin:4px 0 8px}' +
     '.ya-spin{width:34px;height:34px;border:4px solid var(--ya-ring);border-top-color:var(--ya-acc);border-radius:50%;margin:30px auto;animation:ya-rot .8s linear infinite}' +
     '@keyframes ya-rot{to{transform:rotate(360deg)}}' +
+    '.ya-row[data-pid],.ya-pod [data-pid]{cursor:pointer}.ya-row[data-pid]:active{transform:scale(.98)}' +
+    '.ya-hint2{text-align:center;font-size:12px;opacity:.6;margin:-4px 0 8px}' +
+    '.ya-home{max-width:460px;padding:16px 14px 18px;max-height:min(94vh,820px);overflow-y:auto}' +
+    '.ya-room{position:relative;height:300px;border-radius:20px;overflow:hidden;margin:6px 0 12px;background:linear-gradient(180deg,#ffe3f1 0,#f7d9ff 62%,#d9a46b 62%,#c98d55 100%)}' +
+    '.ya-room:before{content:"";position:absolute;left:0;right:0;top:62%;height:6px;background:#b97a43}' +
+    '.ya-win{position:absolute;top:22px;left:22px;width:78px;height:66px;border-radius:10px;border:5px solid #fff;background:linear-gradient(#3b2a78,#7b4fd6);box-shadow:0 2px 0 rgba(0,0,0,.1)}' +
+    '.ya-win:after{content:"✨ ⭐";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px}' +
+    '.ya-lamp{position:absolute;top:14px;right:26px;font-size:34px}.ya-plant{position:absolute;bottom:20px;right:16px;font-size:40px}' +
+    '.ya-rug{position:absolute;left:50%;bottom:14px;width:220px;height:44px;margin-left:-110px;border-radius:50%;background:radial-gradient(#ff9ec7,#ff6fa5);opacity:.85}' +
+    '.ya-who{position:absolute;left:50%;bottom:20px;width:178px;margin-left:-89px}' +
+    '.ya-who.emo{width:auto;margin:0;transform:translateX(-50%);font-size:110px;line-height:1;bottom:40px}' +
+    '.ya-nameplate{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#fff;color:#2b2440;border-radius:99px;padding:4px 14px;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap}' +
+    '.ya-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}' +
+    '.ya-stat{background:var(--ya-field);border-radius:14px;padding:8px 6px;text-align:center}.ya-stat b{display:block;font-family:var(--ya-head);font-size:20px}.ya-stat span{font-size:12px;opacity:.75}' +
+    '.ya-col{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}' +
+    '.ya-col div{background:var(--ya-field);border-radius:12px;padding:6px;text-align:center;font-size:11px;line-height:1.2}' +
+    '.ya-col img{width:100%;aspect-ratio:1;object-fit:contain;display:block;margin-bottom:3px}' +
+    '.ya-col .x{box-shadow:inset 0 0 0 2px #ffcf3f}.ya-col>span{grid-column:1/-1}' +
+    '.ya-h3{font-family:var(--ya-head);font-size:17px;margin:4px 0 8px}' +
     '.ya-trophy{display:inline-flex;align-items:center;gap:6px;font:inherit;font-weight:800;cursor:pointer;border:0;border-radius:99px;padding:8px 14px;' +
     'color:#fff;background:linear-gradient(135deg,#ffb300,#ff6f3c);box-shadow:0 4px 0 rgba(0,0,0,.15)}' +
     '.ya-trophy:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.15)}';
@@ -300,6 +319,8 @@
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
     ov.querySelector('.ya-x').onclick = close;
+    // chạm vào bạn nào → xem "nhà" của bạn đó
+    ov.querySelector('.ya-board').addEventListener('click', function (e) { var p = e.target.closest('[data-pid]'); if (p && p.dataset.pid) home(p.dataset.pid, opts); });
     ov.querySelector('.ya-tabs').addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       tab = b.dataset.t;
@@ -307,7 +328,7 @@
       render();
     });
     function row(o) {
-      return '<div class="ya-row' + (o.me ? ' ya-me' : '') + '"><span class="ya-rk">' + (o.rank <= 3 && o.xp > 0 ? ['🥇', '🥈', '🥉'][o.rank - 1] : o.rank) + '</span>' +
+      return '<div class="ya-row' + (o.me ? ' ya-me' : '') + '"' + (o.pid ? ' data-pid="' + esc(o.pid) + '"' : '') + '><span class="ya-rk">' + (o.rank <= 3 && o.xp > 0 ? ['🥇', '🥈', '🥉'][o.rank - 1] : o.rank) + '</span>' +
         avHtml(o.avatar, o.name) + '<span class="ya-nm">' + esc(o.name) + (o.cls ? '<span class="ya-chip">' + esc(o.cls) + '</span>' : '') + '</span>' +
         '<span class="ya-xp">' + o.xp + '<small>XP</small></span></div>';
     }
@@ -321,12 +342,13 @@
         var order = [top[1], top[0], top[2]], cls = ['ya-p2', 'ya-p1', 'ya-p3'];
         html += '<div class="ya-pod">' + order.map(function (o, i) {
           if (!o) return '<div></div>';
-          return '<div class="' + cls[i] + '">' + (i === 1 ? '<div class="ya-crown">👑</div>' : '') + avHtml(o.avatar, o.name) +
+          return '<div class="' + cls[i] + '" data-pid="' + esc(o.pid || '') + '">' + (i === 1 ? '<div class="ya-crown">👑</div>' : '') + avHtml(o.avatar, o.name) +
             '<div class="ya-nm">' + esc(o.name) + (o.me ? ' ⭐' : '') + '</div><div class="ya-xp">' + o.xp + ' XP</div>' +
             '<div class="ya-step">' + o.rank + '</div></div>';
         }).join('') + '</div>';
       }
       html += list.slice(top.length).map(row).join('');
+      html = '<p class="ya-hint2">👆 Tap a player to visit their home 🏠</p>' + html;
       if (tab === 'week') html += '<p class="ya-foot">XP per lesson: first-try score + fixes on try 2 + staying focused + 🎯 all correct</p>';
       sc.innerHTML = html;
       var mine = list.filter(function (o) { return o.me; })[0];
@@ -346,6 +368,43 @@
         if (!data && document.body.contains(ov)) sc.innerHTML = '<p class="ya-msg">Couldn’t load the leaderboard 😢<br>Check your connection and try again.</p>';
       });
     return Promise.resolve();
+  }
+  /* ---------------- NHÀ BẠN ---------------- */
+  function home(pid, opts) {
+    opts = opts || {};
+    var ov = overlay('ya-dim', opts.theme); ov.style.zIndex = '2147483002';
+    ov.innerHTML = '<div class="ya-card ya-home" role="dialog" aria-label="Player home"><div class="ya-top"><h2 class="ya-h">🏠 Loading…</h2><button class="ya-x" aria-label="Close">✕</button></div><div class="ya-spin"></div></div>';
+    var close = function () { ov.remove(); };
+    ov.addEventListener('click', function (e) { if (e.target === ov || e.target.closest('.ya-x')) close(); });
+    fetch(SCRIPT_URL + '?action=profile&pid=' + encodeURIComponent(pid) + '&token=' + encodeURIComponent(token()))
+      .then(function (r) { return r.json(); })
+      .then(function (p) {
+        if (!document.body.contains(ov)) return;
+        if (!p.ok) throw new Error(p.error || 'error');
+        var m = /^([a-z0-9]+):(\{.*\})$/.exec(String(p.avatar || '')), style = m && m[1], outfit = null;
+        try { outfit = m ? JSON.parse(m[2]) : null; } catch (_) {}
+        var who = window.YumiAvatar && m ? '<div class="ya-who">' + window.YumiAvatar.html(p.avatar) + '</div>'
+          : '<div class="ya-who emo">' + (p.avatar && !/^\//.test(p.avatar) && p.avatar.length < 8 ? esc(p.avatar) : '🙂') + '</div>';
+        var st = function (v, l) { return '<div class="ya-stat"><b>' + v + '</b><span>' + l + '</span></div>'; };
+        var rk = function (x) { return x && x.rank ? '#' + x.rank : '–'; };
+        ov.querySelector('.ya-home').innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠 ' + esc(p.me ? 'My home' : p.name + '’s home') + '</h2><button class="ya-x" aria-label="Close">✕</button></div>' + (p.cls ? '<p class="ya-sub" style="margin:-6px 0 4px">Class ' + esc(p.cls) + '</p>' : '') +
+          '<div class="ya-room"><div class="ya-win"></div><div class="ya-lamp">🌙</div><div class="ya-plant">🪴</div><div class="ya-rug"></div>' + who + '</div>' +
+          '<div class="ya-stats">' + st(rk(p.week), 'This week') + st(rk(p.month), 'This month') + st(rk(p.all), 'All time') +
+          st((p.all && p.all.xp) || 0, 'Total XP') + st(p.lessons || 0, 'Lessons') + st('🔥 ' + (p.streak || 0), 'Week streak') + '</div>' +
+          '<h3 class="ya-h3">🎒 Collection' + (p.owned && p.owned.length ? ' (' + p.owned.length + ')' : '') + '</h3><div class="ya-col" id="ya-col"><span style="opacity:.7;font-size:13px">' + (p.owned && p.owned.length ? 'Loading…' : (p.me ? 'Nothing yet. Earn coins and visit the shop! 🛍️' : 'Nothing yet.')) + '</span></div>';
+        if (p.owned && p.owned.length && window.YumiAvatar && style) {
+          window.YumiAvatar.load(style).then(function (cat) { // giới tính của nhân vật → đúng hình biểu cảm nam/nữ
+            var b = outfit && cat.items[outfit.body], g = b && b.g || '';
+            return Promise.all(p.owned.map(function (id) { return window.YumiAvatar.itemThumb(style, id, g); }));
+          }).then(function (list) {
+            var box = ov.querySelector('#ya-col'); if (!box) return;
+            list = list.filter(Boolean);
+            box.innerHTML = list.length ? list.map(function (t) { return '<div' + (t.rar === 'x' ? ' class="x"' : '') + '><img src="' + esc(t.url) + '" alt="" loading="lazy">' + esc(t.name) + '</div>'; }).join('')
+              : '<span style="opacity:.7;font-size:13px">Nothing yet.</span>';
+          });
+        }
+      })
+      .catch(function (e) { var c = ov.querySelector('.ya-home'); if (c) c.innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠</h2><button class="ya-x" aria-label="Close">✕</button></div><p class="ya-msg">Couldn’t open this home 😢<br>' + esc(e.message || '') + '</p>'; });
   }
   function autoBoard(opts) {
     if (!me()) return;
@@ -384,5 +443,5 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
   })();
   window.YumiAuth = { ready: ready, me: me, token: token, require: requireLogin, login: loginScreen, board: board, autoBoard: autoBoard,
-    trophy: trophy, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL };
+    trophy: trophy, home: home, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL };
 })();

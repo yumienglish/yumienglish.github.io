@@ -412,5 +412,10 @@
     if (!A() || !A().token()) return Promise.resolve(null);
     return api({ action: 'game', game: name || '' }).then(function (j) { if (j && j.added) toast('🪙 +' + j.added + ' coins (mini game)'); return j; }).catch(function () { return null; });
   }
-  window.YumiAvatar = { register: register, load: load, html: html, render: render, open: open, ensure: ensure, button: button, gamePlayed: gamePlayed, parse: parse, SLOTS: SLOTS };
+  /** Ảnh sản phẩm của 1 món (cho "nhà bạn"): Promise<{url, name, rar} | null> */
+  function itemThumb(style, id, g) {
+    return load(style).then(function (cat) { var it = cat.items[id]; if (!it || it.slot === 'body') return null; it = variant(it, g);
+      return { url: BASE + cat.dir + '/' + (it.thumb || it.img), name: it.name, rar: it.rar || 'c' }; }).catch(function () { return null; });
+  }
+  window.YumiAvatar = { itemThumb: itemThumb, register: register, load: load, html: html, render: render, open: open, ensure: ensure, button: button, gamePlayed: gamePlayed, parse: parse, SLOTS: SLOTS };
 })();
