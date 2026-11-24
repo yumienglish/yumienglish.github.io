@@ -33,7 +33,7 @@
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function auth() { var a = LS.get(KEY); return a && a.token && a.me ? a : null; }
+  function auth() { var a = LS.get(KEY); return a && a.token && a.me && a.me.user ? a : null; } // thiếu user (dữ liệu hỏng) → đăng nhập lại
   function me() { var a = auth(); return a ? a.me : null; }
   function token() { var a = auth(); return a ? a.token : ''; }
 
