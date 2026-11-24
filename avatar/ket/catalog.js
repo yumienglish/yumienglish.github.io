@@ -9,7 +9,8 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "x": 0,
   "y": 0,
   "w": 1024,
-  "h": 1536
+  "h": 1536,
+  "nohand": "kbm-nh.webp"
  },
  "kbf": {
   "slot": "body",
@@ -20,7 +21,8 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "x": 0,
   "y": 0,
   "w": 1024,
-  "h": 1536
+  "h": 1536,
+  "nohand": "kbf-nh.webp"
  },
  "kmh1": {
   "slot": "hair",
@@ -527,10 +529,11 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "rel": "",
   "img": "kh1.webp",
   "x": 709,
-  "y": 592,
-  "w": 227,
-  "h": 433,
-  "thumb": "th-kh1.webp"
+  "y": 594,
+  "w": 225,
+  "h": 431,
+  "thumb": "th-kh1.webp",
+  "nohand": 1
  },
  "kh2": {
   "slot": "hand",
@@ -542,10 +545,11 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "rel": "",
   "img": "kh2.webp",
   "x": 703,
-  "y": 277,
-  "w": 308,
-  "h": 748,
-  "thumb": "th-kh2.webp"
+  "y": 279,
+  "w": 306,
+  "h": 746,
+  "thumb": "th-kh2.webp",
+  "nohand": 1
  },
  "kg1": {
   "slot": "glasses",
@@ -794,11 +798,12 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "end": "2026-12-31",
   "ev": "xmas",
   "img": "kxh1.webp",
-  "x": 447,
-  "y": 147,
-  "w": 509,
-  "h": 1340,
-  "thumb": "th-kxh1.webp"
+  "x": 684,
+  "y": 374,
+  "w": 270,
+  "h": 1091,
+  "thumb": "th-kxh1.webp",
+  "nohand": 1
  },
  "kxh2": {
   "slot": "hand",

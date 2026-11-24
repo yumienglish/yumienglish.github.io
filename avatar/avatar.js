@@ -73,7 +73,10 @@
     o = withDefaults(cat, o || {});
     var W = cat.w, H = cat.h, box = opts.crop === 'head' ? (cat.head || { x: W * 0.3, y: 0, w: W * 0.4, h: W * 0.4 }) : { x: 0, y: 0, w: W, h: H };
     var g = genderOf(cat, o);
-    var layers = Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]]; return it ? variant(it, g) : null; }).filter(Boolean).map(function (it) {
+    var held = o.hand && cat.items[o.hand]; // món cầm tay vẽ cả bàn tay mới → thân dùng ảnh không có bàn tay phải (tránh 2 bàn tay)
+    var layers = Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
+      if (it && slot === 'body' && held && held.nohand && it.nohand) it = Object.assign({}, it, { img: it.nohand });
+      return it ? variant(it, g) : null; }).filter(Boolean).map(function (it) {
       return '<img alt="" draggable="false" src="' + esc(BASE + cat.dir + '/' + it.img) + '" style="position:absolute;left:' + ((it.x - box.x) / box.w * 100) + '%;top:' +
         ((it.y - box.y) / box.h * 100) + '%;width:' + (it.w / box.w * 100) + '%;height:' + (it.h / box.h * 100) + '%">';
     }).join('');

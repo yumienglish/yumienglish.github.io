@@ -9,7 +9,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 0,
   "y": 0,
   "w": 1024,
-  "h": 1536
+  "h": 1536,
+  "nohand": "bm-nh.webp"
  },
  "bf": {
   "slot": "body",
@@ -20,7 +21,8 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "x": 0,
   "y": 0,
   "w": 1024,
-  "h": 1536
+  "h": 1536,
+  "nohand": "bf-nh.webp"
  },
  "body": {
   "slot": "body",
@@ -685,11 +687,12 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "end": "2026-12-31",
   "ev": "xmas",
   "img": "xh1.webp",
-  "x": 656,
-  "y": 383,
-  "w": 257,
-  "h": 645,
-  "thumb": "th-xh1.webp"
+  "x": 658,
+  "y": 385,
+  "w": 253,
+  "h": 641,
+  "thumb": "th-xh1.webp",
+  "nohand": 1
  },
  "xh2": {
   "slot": "hand",
