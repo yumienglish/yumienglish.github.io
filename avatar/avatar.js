@@ -170,7 +170,8 @@
     p = parse(me.avatar);
     return p && p.style === style ? p.o : null;
   }
-  function setMyOutfit(str) { try { var a = JSON.parse(localStorage.getItem('yumi-auth')); var p = parse(str);
+  function setMyOutfit(str) { if (A() && A().setOutfit) return A().setOutfit(str); // phiên đăng nhập riêng từng link
+    try { var a = JSON.parse(localStorage.getItem('yumi-auth')); var p = parse(str);
     if (a && a.me) { a.me.avatar = str; if (p) { a.me.outfits = a.me.outfits || {}; a.me.outfits[p.style] = str; } localStorage.setItem('yumi-auth', JSON.stringify(a)); } } catch (_) {} }
 
   /* ---------------- Tủ đồ / Shop / Rương ---------------- */

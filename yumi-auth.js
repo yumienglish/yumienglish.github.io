@@ -18,7 +18,13 @@
   // ====== CÔNG TẮC CHUNG: false = các trang chạy như cũ (gõ tên). Đổi true khi cô đã gửi PIN cho mọi em. ======
   var ENFORCE = true;
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAom9bBpL0ms0VD7_bz5w691011llkFzttYSjKDyRyMCjLLeUZ4EZGGJLtLMFWuiV4sA/exec';
-  var KEY = 'yumi-auth', DAY_KEY = 'yumi-board-day', BOARD_CACHE = 'yumi-board-cache';
+  // Mỗi link (KET / PET / B2 / A1 / IELTS) có phiên đăng nhập riêng → anh đăng nhập B2, em vào KET không bị nhận nhầm là anh.
+  var SITE_ID = (function () { var p = location.pathname;
+    return /^\/KET\//i.test(p) ? 'ket' : /^\/PET\//i.test(p) ? 'pet' : /^\/B2-First\//i.test(p) ? 'b2' : /^\/A1-KID\//i.test(p) ? 'a1' : /^\/ielts-homework\//i.test(p) ? 'ielts' : ''; })();
+  var SITE_NAMES = { ket: 'KET Adventure', pet: 'PET Arena', b2: 'B2 First', a1: 'A1 KID', ielts: 'IELTS homework' };
+  var LEGACY_KEY = 'yumi-auth'; // phiên cũ dùng chung mọi link (trước 25/11): kiểm tra rồi chuyển sang phiên của link
+  var KEY = SITE_ID ? 'yumi-auth-' + SITE_ID : 'yumi-auth', DAY_KEY = 'yumi-board-day', BOARD_CACHE = 'yumi-board-cache' + (SITE_ID ? '-' + SITE_ID : '');
+  function siteOk(m) { return !!m && (!SITE_ID || !m.site || m.site === '*' || m.site === SITE_ID); }
 
   var LS = {
     get: function (k) { try { return JSON.parse(localStorage.getItem(k)); } catch (_) { return null; } },
@@ -33,7 +39,7 @@
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function auth() { var a = LS.get(KEY); return a && a.token && a.me && a.me.user ? a : null; } // thiếu user (dữ liệu hỏng) → đăng nhập lại
+  function auth() { var a = LS.get(KEY); return a && a.token && a.me && a.me.user && siteOk(a.me) ? a : null; } // thiếu user / tài khoản link khác → đăng nhập lại
   function me() { var a = auth(); return a ? a.me : null; }
   function token() { var a = auth(); return a ? a.token : ''; }
 
@@ -81,7 +87,7 @@
     return changed;
   }
   function mark(k) {
-    if (applying) return; var g = groupOf(k), m = g && me(); if (!m) return;
+    if (applying) return; var g = groupOf(k); if (g !== SITE) return; var m = me(); if (!m) return;
     var s = sst(g); if (s.user !== m.user) return; // máy chưa xác định chủ → chờ lần tải đầu
     s.dirty = s.dirty || {}; s.dirty[k] = 1; setSst(g, s); schedulePush(10000);
   }
@@ -100,6 +106,7 @@
   function pendingGroups(u) {
     var out = null;
     GROUPS.forEach(function (g) {
+      if (g !== SITE) return; // phiên này chỉ gửi tiến độ của link đang mở
       var s = sst(g); if (s.user !== u || !s.dirty) return; var ks = Object.keys(s.dirty); if (!ks.length) return;
       var set = {}, del = [], snap = {};
       ks.forEach(function (k) { var v = localStorage.getItem(k); snap[k] = v; if (v == null) del.push(k); else if (syncable(k, v)) set[k] = v; });
@@ -140,6 +147,7 @@
   function reconcile(j, u) {
     var siteChanged = '';
     GROUPS.forEach(function (g) {
+      if (g !== SITE) return; // tiến độ của link khác do phiên của link đó lo
       var s = sst(g), srv = (j.data || {})[g.id], at = (j.at || {})[g.id] || 0;
       if (s.user !== u) {
         if (!s.user) { // máy dùng từ trước khi có đồng bộ → GỘP: giữ dữ liệu trên máy, thêm bài máy chủ có mà máy chưa có;
@@ -171,7 +179,7 @@
       var ch = reconcile(j, m.user);
       if (ch === 'owner' && !initial) { location.reload(); return new Promise(function () {}); }
     }).catch(function () { // mạng lỗi: ít nhất không để em này thấy dữ liệu của em khác
-      GROUPS.forEach(function (g) { var s = sst(g); if (s.user && s.user !== m.user) { wipe(g); setSst(g, { user: m.user, at: 0, dirty: {} }); } });
+      if (SITE) { var s = sst(SITE); if (s.user && s.user !== m.user) { wipe(SITE); setSst(SITE, { user: m.user, at: 0, dirty: {} }); } }
     });
   }
   // mỗi lần mở trang (đã đăng nhập sẵn)
@@ -355,6 +363,7 @@
         // ---- đăng nhập ----
         '<form class="ya-f" data-f="in" autocomplete="off">' +
         '<p class="ya-sub">' + esc(opts.sub || 'Log in to save your stars and join the leaderboard 🏆') + '</p>' +
+        (opts.wrongSite ? '<p class="ya-err" style="margin:-8px 0 10px">' + esc(opts.wrongSite) + '</p>' : '') +
         '<label class="ya-lbl" for="ya-user">Nickname</label>' +
         '<input class="ya-in" id="ya-user" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="20" placeholder="Your nickname">' +
         '<label class="ya-lbl">PIN</label>' + pinRow('in', 'PIN') +
@@ -408,7 +417,7 @@
         setTimeout(function () { (m === 'in' ? (user.value ? pins('in')[0] : user) : ov.querySelector('#ya-nick')).focus(); }, 40);
       };
       ov.querySelector('.ya-mode').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) mode(b.dataset.m); });
-      var saved = LS.get(KEY) || {}, lastUser = (saved.me && saved.me.name) || saved.last;
+      var saved = LS.get(KEY) || {}, lastUser = opts.wrongSite ? '' : (saved.me && saved.me.name) || saved.last;
       if (lastUser) user.value = lastUser;
       user.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); pins('in')[0].focus(); } });
       ['#ya-nick', '#ya-full', '#ya-cls'].forEach(function (id, i, arr) {
@@ -442,7 +451,7 @@
         var err = forms['in'].querySelector('.ya-err'), pin = pinVal('in');
         if (!user.value.trim()) { err.textContent = 'Please enter your nickname'; user.focus(); return; }
         if (pin.length !== 4) { err.textContent = 'Your PIN has 4 digits'; (pins('in').filter(function (x) { return !x.value; })[0] || pins('in')[0]).focus(); return; }
-        run(forms['in'], { action: 'login', user: user.value, pin: pin }, 'Let’s go 🚀', function () { clearPins('in'); shake('in'); pins('in')[0].focus(); });
+        run(forms['in'], { action: 'login', user: user.value, pin: pin, site: SITE_ID }, 'Let’s go 🚀', function () { clearPins('in'); shake('in'); pins('in')[0].focus(); });
       });
       forms['new'].addEventListener('submit', function (e) {
         e.preventDefault(); if (busy) return;
@@ -455,7 +464,7 @@
         if (!cls.value.trim()) return bad('Please enter your class', cls);
         if (p1.length !== 4) return bad('Your PIN needs 4 digits', pins('p1').filter(function (x) { return !x.value; })[0] || pins('p1')[0]);
         if (p1 !== p2) { clearPins('p2'); shake('p2'); return bad('The two PINs don’t match, please try again', pins('p2')[0]); }
-        run(f, { action: 'register', nick: nick.value, full: full.value, cls: cls.value, pin: p1 }, 'Create account ✨', function (field) {
+        run(f, { action: 'register', nick: nick.value, full: full.value, cls: cls.value, pin: p1, site: SITE_ID }, 'Create account ✨', function (field) {
           if (field === 'pin') { clearPins('p1'); clearPins('p2'); shake('p1'); pins('p1')[0].focus(); }
           else if (field === 'nick') nick.focus(); else if (field === 'full') full.focus(); else if (field === 'cls') cls.focus();
         });
@@ -466,7 +475,23 @@
   function requireLogin(opts) {
     var m = me();
     if (m) return Promise.resolve(m);
-    return loginScreen(Object.assign({}, opts || {}, { _initial: true })).then(function (m2) { if (opts && opts.onLogin) opts.onLogin(m2); return m2; });
+    var show = function (extra) { return loginScreen(Object.assign({}, opts || {}, { _initial: true }, extra || {})).then(function (m2) { if (opts && opts.onLogin) opts.onLogin(m2); return m2; }); };
+    var old = SITE_ID ? LS.get(LEGACY_KEY) : null;
+    if (!old || !old.token || !old.me || !old.me.user) return show();
+    var wait = overlay('ya-full', opts && opts.theme); wait.innerHTML = '<div class="ya-card" style="text-align:center"><p class="ya-sub" style="margin:0">Checking your account… ⏳</p></div>';
+    var t = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 9000); });
+    return Promise.race([fetch(SCRIPT_URL + '?action=progress&token=' + encodeURIComponent(old.token)).then(function (r) { return r.json(); }), t]).then(function (j) {
+      wait.remove();
+      if (!j || !j.ok || !j.me) return show(); // hết phiên / lỗi mạng → đăng nhập
+      if (!j.me.site) return show({ sub: 'Please log in once more to continue 🙂' }); // chưa rõ link → đăng nhập 1 lần để gắn với link này
+      if (j.me.site !== '*' && j.me.site !== SITE_ID) // tài khoản của link khác (VD anh học B2, em mở KET)
+        return show({ wrongSite: 'This is the ' + SITE_NAMES[SITE_ID] + ' page. Please log in with your own account 🙂' });
+      LS.set(KEY, { token: old.token, me: j.me, at: Date.now() });
+      if (j.me.site !== '*') LS.del(LEGACY_KEY); // đã chuyển sang phiên của link này
+      reconcile(j, j.me.user); useStyle();
+      if (opts && opts.onLogin) opts.onLogin(j.me);
+      return j.me;
+    }, function () { wait.remove(); return show(); });
   }
 
   /* ---------------- BẢNG XẾP HẠNG ---------------- */
@@ -650,7 +675,8 @@
     return loginScreen(Object.assign({}, opts || {}, { sub: 'Please log in again to send your work 📨' }));
   }
   function logout() { // gửi nốt tiến độ rồi mới đăng xuất
-    var bye = function () { LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); };
+    var bye = function () { var a = auth(), old = LS.get(LEGACY_KEY); if (old && old.me && a && old.me.user === a.me.user) LS.del(LEGACY_KEY);
+      LS.del(KEY); LS.del(BOARD_CACHE); location.reload(); };
     var t = setTimeout(bye, 4000); pushNow(false).then(function () { clearTimeout(t); bye(); }, function () { clearTimeout(t); bye(); });
   }
   if (ready()) syncOnLoad();
@@ -667,5 +693,7 @@
   })();
   window.YumiAuth = { ready: ready, me: me, token: token, require: requireLogin, login: loginScreen, board: board, autoBoard: autoBoard,
     trophy: trophy, home: home, setAvatar: setAvatar, authFailed: authFailed, logout: logout, avatarHtml: avHtml, url: SCRIPT_URL,
-    syncNow: function () { return pushNow(false); } };
+    syncNow: function () { return pushNow(false); },
+    setOutfit: function (str) { var a = auth(); if (!a) return; var st = /^([a-z0-9]+):/.exec(str || ''); a.me.avatar = str; if (st) { a.me.outfits = a.me.outfits || {}; a.me.outfits[st[1]] = str; } LS.set(KEY, a); },
+    site: SITE_ID };
 })();
