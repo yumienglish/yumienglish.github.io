@@ -127,6 +127,15 @@
     '.ya-col img{width:100%;aspect-ratio:1;object-fit:contain;display:block;margin-bottom:3px}' +
     '.ya-col .x{box-shadow:inset 0 0 0 2px #ffcf3f}.ya-col>span{grid-column:1/-1}' +
     '.ya-h3{font-family:var(--ya-head);font-size:17px;margin:4px 0 8px}' +
+    '.ya-react{display:flex;gap:8px;justify-content:center;margin:-2px 0 12px}' +
+    '.ya-react button{border:0;border-radius:99px;padding:8px 14px;font:inherit;font-weight:800;font-size:15px;background:var(--ya-field);color:var(--ya-text);cursor:pointer;transition:transform .15s}' +
+    '.ya-react button.on{background:linear-gradient(135deg,var(--ya-acc),var(--ya-acc2));color:#fff}.ya-react button:active{transform:scale(1.15)}.ya-react button[disabled]{cursor:default;opacity:.85}' +
+    '.ya-react small{display:block;font-size:10.5px;font-weight:600;opacity:.8}' +
+    '.ya-gb{margin-top:14px}.ya-gb .c{background:var(--ya-field);border-radius:12px;padding:8px 10px;margin-bottom:6px;font-size:14px;line-height:1.35;position:relative}' +
+    '.ya-gb .c b{font-size:13px}.ya-gb .c time{font-size:11px;opacity:.6;margin-left:6px}.ya-gb .c .del{position:absolute;top:4px;right:6px;border:0;background:none;cursor:pointer;font-size:14px;opacity:.6}' +
+    '.ya-gb form,.ya-rn form{display:flex;gap:6px;margin-top:8px}.ya-gb input,.ya-rn input{flex:1;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border-radius:12px;border:2px solid var(--ya-line);background:var(--ya-field);color:var(--ya-text)}' +
+    '.ya-gb form button,.ya-rn form button,.ya-rn>button{border:0;border-radius:12px;padding:9px 14px;font:inherit;font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ya-acc),var(--ya-acc2))}' +
+    '.ya-rn{margin:0 0 12px;text-align:center}.ya-rn>button{background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300}.ya-gerr{color:#e0394d;font-size:13px;font-weight:700;margin-top:4px;min-height:16px}' +
     '.ya-trophy{display:inline-flex;align-items:center;gap:6px;font:inherit;font-weight:800;cursor:pointer;border:0;border-radius:99px;padding:8px 14px;' +
     'color:#fff;background:linear-gradient(135deg,#ffb300,#ff6f3c);box-shadow:0 4px 0 rgba(0,0,0,.15)}' +
     '.ya-trophy:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.15)}';
@@ -389,9 +398,11 @@
         var rk = function (x) { return x && x.rank ? '#' + x.rank : '–'; };
         ov.querySelector('.ya-home').innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠 ' + esc(p.me ? 'My home' : p.name + '’s home') + '</h2><button class="ya-x" aria-label="Close">✕</button></div>' + (p.cls ? '<p class="ya-sub" style="margin:-6px 0 4px">Class ' + esc(p.cls) + '</p>' : '') +
           '<div class="ya-room"><div class="ya-win"></div><div class="ya-lamp">🌙</div><div class="ya-plant">🪴</div><div class="ya-rug"></div>' + who + '</div>' +
+          socialTop(p) +
           '<div class="ya-stats">' + st(rk(p.week), 'This week') + st(rk(p.month), 'This month') + st(rk(p.all), 'All time') +
           st((p.all && p.all.xp) || 0, 'Total XP') + st(p.lessons || 0, 'Lessons') + st('🔥 ' + (p.streak || 0), 'Week streak') + '</div>' +
-          '<h3 class="ya-h3">🎒 Collection' + (p.owned && p.owned.length ? ' (' + p.owned.length + ')' : '') + '</h3><div class="ya-col" id="ya-col"><span style="opacity:.7;font-size:13px">' + (p.owned && p.owned.length ? 'Loading…' : (p.me ? 'Nothing yet. Earn coins and visit the shop! 🛍️' : 'Nothing yet.')) + '</span></div>';
+          '<h3 class="ya-h3">🎒 Collection' + (p.owned && p.owned.length ? ' (' + p.owned.length + ')' : '') + '</h3><div class="ya-col" id="ya-col"><span style="opacity:.7;font-size:13px">' + (p.owned && p.owned.length ? 'Loading…' : (p.me ? 'Nothing yet. Earn coins and visit the shop! 🛍️' : 'Nothing yet.')) + '</span></div>' + guestbook(p);
+        bindSocial(ov, p, pid, opts);
         if (p.owned && p.owned.length && window.YumiAvatar && style) {
           window.YumiAvatar.load(style).then(function (cat) { // giới tính của nhân vật → đúng hình biểu cảm nam/nữ
             var b = outfit && cat.items[outfit.body], g = b && b.g || '';
@@ -405,6 +416,56 @@
         }
       })
       .catch(function (e) { var c = ov.querySelector('.ya-home'); if (c) c.innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠</h2><button class="ya-x" aria-label="Close">✕</button></div><p class="ya-msg">Couldn’t open this home 😢<br>' + esc(e.message || '') + '</p>'; });
+  }
+  var REACT_UI = [['like', '❤️', 'Love'], ['haha', '😆', 'Haha'], ['cay', '😤', 'So jealous']];
+  function socialTop(p) {
+    var s = p.social || { counts: {}, mine: {} };
+    var html = '<div class="ya-react">' + REACT_UI.map(function (r) {
+      return '<button type="button" data-react="' + r[0] + '"' + (s.mine[r[0]] ? ' class="on"' : '') + (p.me ? ' disabled' : '') + '>' + r[1] + ' ' + (s.counts[r[0]] || 0) + '<small>' + r[2] + '</small></button>';
+    }).join('') + '</div>';
+    if (p.me) html += '<div class="ya-rn"><button type="button" data-rn>✏️ Change nickname · ' + (p.renamePrice || 300) + ' 🪙</button>' +
+      '<form hidden><input maxlength="20" placeholder="New nickname" value="' + esc(p.name) + '"><button type="submit">OK</button></form>' +
+      '<div class="ya-gerr"></div><div style="font-size:12px;opacity:.7">You have ' + (p.coins || 0) + ' 🪙 · you can still log in with your old nickname</div></div>';
+    return html;
+  }
+  var ago = function (s) {
+    var d = new Date(s + ':00+07:00'), m = Math.round((Date.now() - d) / 60000);
+    return isNaN(m) ? '' : m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago';
+  };
+  function guestbook(p) {
+    var cs = (p.social && p.social.comments) || [];
+    return '<div class="ya-gb"><h3 class="ya-h3">💬 Guestbook' + (cs.length ? ' (' + cs.length + ')' : '') + '</h3>' +
+      '<div class="ya-gbl">' + (cs.length ? cs.map(function (c) {
+        return '<div class="c"><b>' + esc(c.name) + '</b><time>' + ago(c.at) + '</time>' + (c.canDel ? '<button class="del" data-del="' + c.cid + '" aria-label="Delete">🗑</button>' : '') + '<div>' + esc(c.text) + '</div></div>';
+      }).join('') : '<p style="opacity:.7;font-size:13px;margin:0">' + (p.me ? 'No messages yet. Visit your friends’ homes and say hi! 👋' : 'Be the first to write something nice! ✨') + '</p>') + '</div>' +
+      '<form><input maxlength="120" placeholder="' + (p.me ? 'Reply to your visitors…' : 'Write something nice…') + '"><button type="submit">Send</button></form><div class="ya-gerr"></div></div>';
+  }
+  function bindSocial(ov, p, pid, opts) {
+    var card = ov.querySelector('.ya-home'); if (!card) return;
+    var redraw = function (social) { p.social = social; var top = card.querySelector('.ya-react'); var gb = card.querySelector('.ya-gb');
+      if (top) top.outerHTML = socialTop(p).replace(/<div class="ya-rn">[\s\S]*$/, ''); if (gb) gb.outerHTML = guestbook(p); bindSocial(ov, p, pid, opts); };
+    var call = function (body) { return post(Object.assign({ token: token() }, body)).then(function (j) { if (j.auth) { ov.remove(); authFailed(opts); throw new Error('auth'); } if (!j.ok) throw new Error(j.error || 'error'); return j; }); };
+    [].forEach.call(card.querySelectorAll('[data-react]'), function (b) { b.onclick = function () { if (p.me) return; b.disabled = true;
+      call({ action: 'react', pid: pid, type: b.dataset.react }).then(function (j) { redraw(j.social); }).catch(function () { b.disabled = false; }); }; });
+    var gbf = card.querySelector('.ya-gb form'), gerr = card.querySelector('.ya-gb .ya-gerr');
+    if (gbf) gbf.onsubmit = function (e) { e.preventDefault(); var inp = gbf.querySelector('input'), btn = gbf.querySelector('button'); if (!inp.value.trim()) return;
+      btn.disabled = true; gerr.textContent = '';
+      call({ action: 'comment', pid: pid, text: inp.value }).then(function (j) { redraw(j.social); }).catch(function (ex) { if (ex.message !== 'auth') gerr.textContent = ex.message; btn.disabled = false; }); };
+    [].forEach.call(card.querySelectorAll('[data-del]'), function (b) { b.onclick = function () { if (!confirm('Delete this message?')) return;
+      call({ action: 'delcomment', cid: b.dataset.del }).then(function (j) { redraw(j.social); }).catch(function (ex) { if (gerr) gerr.textContent = ex.message; }); }; });
+    var rn = card.querySelector('[data-rn]');
+    if (rn) { var rf = card.querySelector('.ya-rn form'), rerr = card.querySelector('.ya-rn .ya-gerr');
+      rn.onclick = function () { rf.hidden = !rf.hidden; if (!rf.hidden) rf.querySelector('input').select(); };
+      rf.onsubmit = function (e) { e.preventDefault(); var nick = rf.querySelector('input').value.trim(); if (!nick) return;
+        if (!confirm('Change your nickname to "' + nick + '" for ' + (p.renamePrice || 300) + ' coins?')) return;
+        rerr.textContent = '';
+        call({ action: 'rename', nick: nick }).then(function (j) {
+          var a = auth(); if (a) { a.me = Object.assign({}, a.me, j.me || { name: j.name }); LS.set(KEY, a); }
+          LS.del(BOARD_CACHE); ov.remove(); home(pid, opts);
+          var t = document.createElement('div'); t.className = 'ya-ov ya-dim'; t.style.cssText = 'pointer-events:none;align-items:flex-end;background:none'; injectCss();
+          t.innerHTML = '<div class="ya-card" style="max-width:320px;text-align:center;font-weight:800">✨ You are now ' + esc(j.name) + '!</div>'; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2200);
+        }).catch(function (ex) { if (ex.message !== 'auth') rerr.textContent = ex.message; }); };
+    }
   }
   function autoBoard(opts) {
     if (!me()) return;
