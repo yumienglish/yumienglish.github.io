@@ -21,7 +21,7 @@
   // Mỗi link (KET / PET / B2 / A1 / IELTS) có phiên đăng nhập riêng → anh đăng nhập B2, em vào KET không bị nhận nhầm là anh.
   var SITE_ID = (function () { var p = location.pathname;
     return /^\/KET\//i.test(p) ? 'ket' : /^\/PET\//i.test(p) ? 'pet' : /^\/B2-First\//i.test(p) ? 'b2' : /^\/A1-KID\//i.test(p) ? 'a1' : /^\/ielts-homework\//i.test(p) ? 'ielts' : ''; })();
-  var SITE_NAMES = { ket: 'KET Adventure', pet: 'PET Arena', b2: 'B2 First', a1: 'A1 KID', ielts: 'IELTS homework' };
+  var SITE_NAMES = { ket: 'KET Adventure', pet: 'PET Arena', b2: 'B2 First', a1: 'A1 KID', ielts: 'IELTS Foundation' };
   var LEGACY_KEY = 'yumi-auth'; // phiên cũ dùng chung mọi link (trước 25/11): kiểm tra rồi chuyển sang phiên của link
   var KEY = SITE_ID ? 'yumi-auth-' + SITE_ID : 'yumi-auth', DAY_KEY = 'yumi-board-day', BOARD_CACHE = 'yumi-board-cache' + (SITE_ID ? '-' + SITE_ID : '');
   function siteOk(m) { return !!m && (!SITE_ID || !m.site || m.site === '*' || m.site === SITE_ID); }
