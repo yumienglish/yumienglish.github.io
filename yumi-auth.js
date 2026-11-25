@@ -496,6 +496,15 @@
 
   /* ---------------- BẢNG XẾP HẠNG ---------------- */
   var TABS = [['week', 'This week'], ['month', 'This month'], ['all', 'All time']];
+  // 1 lần tải dùng chung: tải sẵn lúc mở trang (nếu hôm nay bảng sẽ tự bật), mở lại trong 1 phút thì không hỏi lại máy chủ
+  var boardReq = null, boardReqAt = 0;
+  function fetchBoard() {
+    if (boardReq && Date.now() - boardReqAt < 60000) return boardReq;
+    boardReqAt = Date.now();
+    boardReq = fetch(SCRIPT_URL + '?action=board&token=' + encodeURIComponent(token())).then(function (r) { return r.json(); });
+    boardReq.then(function (j) { if (!j || !j.ok) boardReq = null; }, function () { boardReq = null; });
+    return boardReq;
+  }
   function board(opts) {
     opts = opts || {};
     if (!me()) return requireLogin(opts).then(function () { return board(opts); });
@@ -547,10 +556,9 @@
       pin.innerHTML = mine ? row(mine) : data.pending ? '<p class="ya-msg" style="padding:10px 4px">⏳ Your teacher is checking your name. You’ll join the board soon!</p>' : '';
     }
     render();
-    fetch(SCRIPT_URL + '?action=board&token=' + encodeURIComponent(token()))
-      .then(function (r) { return r.json(); })
+    fetchBoard()
       .then(function (j) {
-        if (j.auth) { close(); return authFailed(opts).then(function () { return board(opts); }); }
+        if (j.auth) { boardReq = null; close(); return authFailed(opts).then(function () { return board(opts); }); }
         if (!j.ok) throw new Error(j.error || 'error');
         data = j; LS.set(BOARD_CACHE, { at: Date.now(), data: j });
         if (j.me) { var a = auth(); if (a) { a.me = j.me; LS.set(KEY, a); } }
@@ -568,11 +576,21 @@
     ov.innerHTML = '<div class="ya-card ya-home" role="dialog" aria-label="Player home"><div class="ya-top"><h2 class="ya-h">🏠 Loading…</h2><button class="ya-x" aria-label="Close">✕</button></div><div class="ya-spin"></div></div>';
     var close = function () { ov.remove(); };
     ov.addEventListener('click', function (e) { if (e.target === ov || e.target.closest('.ya-x')) close(); });
+    var shown = false, old = homeCache(pid);
+    if (old) { show(old); shown = true; } // nhà đã xem trước đây → hiện ngay, máy chủ trả lời thì cập nhật
     fetch(SCRIPT_URL + '?action=profile&pid=' + encodeURIComponent(pid) + '&token=' + encodeURIComponent(token()))
       .then(function (r) { return r.json(); })
       .then(function (p) {
         if (!document.body.contains(ov)) return;
         if (!p.ok) throw new Error(p.error || 'error');
+        homeCache(pid, p);
+        var typing = ov.querySelector('.ya-home input:focus') || [].some.call(ov.querySelectorAll('.ya-home input'), function (i) { return i.value && i.value !== i.defaultValue; });
+        if (shown && typing) return; // đang gõ lời nhắn → không vẽ lại kẻo mất chữ
+        show(p);
+      })
+      .catch(function (e) { if (shown) return; var c = ov.querySelector('.ya-home'); if (c) c.innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠</h2><button class="ya-x" aria-label="Close">✕</button></div><p class="ya-msg">Couldn’t open this home 😢<br>' + esc(e.message || '') + '</p>'; });
+    function show(p) {
+      {
         var m = /^([a-z0-9]+):(\{.*\})$/.exec(String(p.avatar || '')), style = m && m[1], outfit = null;
         try { outfit = m ? JSON.parse(m[2]) : null; } catch (_) {}
         var who = window.YumiAvatar && m ? '<div class="ya-who">' + window.YumiAvatar.html(p.avatar) + '</div>'
@@ -597,8 +615,16 @@
               : '<span style="opacity:.7;font-size:13px">Nothing yet.</span>';
           });
         }
-      })
-      .catch(function (e) { var c = ov.querySelector('.ya-home'); if (c) c.innerHTML = '<div class="ya-top"><h2 class="ya-h">🏠</h2><button class="ya-x" aria-label="Close">✕</button></div><p class="ya-msg">Couldn’t open this home 😢<br>' + esc(e.message || '') + '</p>'; });
+      }
+    }
+  }
+  // nhà đã xem (theo người xem): giữ 30 nhà gần nhất trên máy
+  function homeCache(pid, p) {
+    var m = me(), k = 'yumi-homes-' + (m && m.user), all = LS.get(k) || {};
+    if (arguments.length < 2) return all[pid] && all[pid].p || null;
+    if (p) all[pid] = { p: p, t: Date.now() }; else delete all[pid];
+    var ks = Object.keys(all); if (ks.length > 30) ks.sort(function (a, b) { return all[a].t - all[b].t; }).slice(0, ks.length - 30).forEach(function (x) { delete all[x]; });
+    LS.set(k, all);
   }
   var REACT_UI = [['like', '❤️', 'Love'], ['haha', '😆', 'Haha'], ['cay', '😤', 'So jealous']];
   function socialTop(p) {
@@ -625,7 +651,7 @@
   }
   function bindSocial(ov, p, pid, opts) {
     var card = ov.querySelector('.ya-home'); if (!card) return;
-    var redraw = function (social) { p.social = social; var top = card.querySelector('.ya-react'); var gb = card.querySelector('.ya-gb');
+    var redraw = function (social) { p.social = social; homeCache(pid, p); var top = card.querySelector('.ya-react'); var gb = card.querySelector('.ya-gb');
       if (top) top.outerHTML = socialTop(p).replace(/<div class="ya-rn">[\s\S]*$/, ''); if (gb) gb.outerHTML = guestbook(p); bindSocial(ov, p, pid, opts); };
     var call = function (body) { return post(Object.assign({ token: token() }, body)).then(function (j) { if (j.auth) { ov.remove(); authFailed(opts); throw new Error('auth'); } if (!j.ok) throw new Error(j.error || 'error'); return j; }); };
     [].forEach.call(card.querySelectorAll('[data-react]'), function (b) { b.onclick = function () { if (p.me) return; b.disabled = true;
@@ -644,7 +670,7 @@
         rerr.textContent = '';
         call({ action: 'rename', nick: nick }).then(function (j) {
           var a = auth(); if (a) { a.me = Object.assign({}, a.me, j.me || { name: j.name }); LS.set(KEY, a); }
-          LS.del(BOARD_CACHE); ov.remove(); home(pid, opts);
+          LS.del(BOARD_CACHE); boardReq = null; homeCache(pid, null); ov.remove(); home(pid, opts);
           var t = document.createElement('div'); t.className = 'ya-ov ya-dim'; t.style.cssText = 'pointer-events:none;align-items:flex-end;background:none'; injectCss();
           t.innerHTML = '<div class="ya-card" style="max-width:320px;text-align:center;font-weight:800">✨ You are now ' + esc(j.name) + '!</div>'; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2200);
         }).catch(function (ex) { if (ex.message !== 'auth') rerr.textContent = ex.message; }); };
@@ -680,6 +706,8 @@
     var t = setTimeout(bye, 4000); pushNow(false).then(function () { clearTimeout(t); bye(); }, function () { clearTimeout(t); bye(); });
   }
   if (ready()) syncOnLoad();
+  // hôm nay bảng xếp hạng sẽ tự bật → tải sẵn ngay (song song với tiến độ), lúc bật lên đã có dữ liệu
+  if (ready() && me() && LS.get(DAY_KEY) !== today()) { try { fetchBoard().catch(function () {}); } catch (_) {} }
 
   // nạp sẵn avatar.js (nhân vật + tủ đồ) để bảng xếp hạng vẽ được nhân vật
   (function () {

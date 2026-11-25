@@ -68,23 +68,93 @@
     return o;
   }
   /** Vẽ nhân vật (các lớp ảnh chồng nhau theo % để co giãn theo khung). crop 'head' = chỉ phần đầu (avatar tròn). */
-  function render(cat, o, opts) {
-    opts = opts || {};
+  function headBox(cat) { return cat.head || { x: cat.w * 0.3, y: 0, w: cat.w * 0.4, h: cat.w * 0.4 }; }
+  /** Các lớp ảnh (dưới → trên) của 1 bộ đồ. */
+  function layersOf(cat, o) {
     o = withDefaults(cat, o || {});
-    var W = cat.w, H = cat.h, box = opts.crop === 'head' ? (cat.head || { x: W * 0.3, y: 0, w: W * 0.4, h: W * 0.4 }) : { x: 0, y: 0, w: W, h: H };
     var g = genderOf(cat, o);
     var held = o.hand && cat.items[o.hand]; // món cầm tay vẽ cả bàn tay mới → thân dùng ảnh không có bàn tay phải (tránh 2 bàn tay)
-    var layers = Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
+    return Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
       if (it && slot === 'body' && held && held.nohand && it.nohand) it = Object.assign({}, it, { img: it.nohand });
-      return it ? variant(it, g) : null; }).filter(Boolean).map(function (it) {
+      return it ? variant(it, g) : null; }).filter(Boolean);
+  }
+  function render(cat, o, opts) {
+    opts = opts || {};
+    var W = cat.w, H = cat.h, box = opts.crop === 'head' ? headBox(cat) : { x: 0, y: 0, w: W, h: H };
+    var layers = layersOf(cat, o).map(function (it) {
       return '<img alt="" draggable="false" src="' + esc(BASE + cat.dir + '/' + it.img) + '" style="position:absolute;left:' + ((it.x - box.x) / box.w * 100) + '%;top:' +
         ((it.y - box.y) / box.h * 100) + '%;width:' + (it.w / box.w * 100) + '%;height:' + (it.h / box.h * 100) + '%">';
     }).join('');
     return '<div class="yav' + (opts.crop === 'head' ? ' yav-head' : '') + '" style="position:relative;overflow:hidden;aspect-ratio:' + box.w + '/' + box.h + ';' + (opts.size ? 'width:' + opts.size + 'px;' : 'width:100%;') + '">' + layers + '</div>';
   }
   /** HTML nhân vật từ chuỗi outfit (bảng xếp hạng). Danh mục chưa nạp → chỗ trống, nạp xong tự vẽ lại. */
+  /* Đầu nhân vật (bảng xếp hạng, trang chủ): ghép các lớp thành 1 ảnh nhỏ 128px rồi nhớ lại → mỗi bạn 1 ảnh nhỏ thay vì 5–8 lớp ảnh lớn. */
+  var HEAD_PX = 128, HEAD_VER = 'h2', HKEY = 'yumi-heads', HMAX = 60, HMEM = {}, HPEND = {}, IMGS = {};
+  var canHead = (function () { try { var c = document.createElement('canvas'); return !!(c.getContext && c.getContext('2d')); } catch (_) { return false; } })();
+  function headStore() { try { return JSON.parse(localStorage.getItem(HKEY)) || {}; } catch (_) { return {}; } }
+  function headGet(k) {
+    if (HMEM[k]) return HMEM[k];
+    var s = headStore(); if (s[k] && s[k].u) { HMEM[k] = s[k].u; return s[k].u; }
+    return null;
+  }
+  function headPut(k, u, onlyStore) {
+    if (!onlyStore) HMEM[k] = u;
+    if (!/^data:image\/webp/.test(u) || u.length > 20000) return; // chỉ lưu bản webp nhỏ (iPhone chưa xuất được webp → chỉ nhớ trong lúc mở trang)
+    try { var s = headStore(); s[k] = { u: u, t: Date.now() }; var ks = Object.keys(s);
+      if (ks.length > HMAX) ks.sort(function (a, b) { return s[a].t - s[b].t; }).slice(0, ks.length - HMAX).forEach(function (x) { delete s[x]; });
+      localStorage.setItem(HKEY, JSON.stringify(s)); } catch (_) {}
+  }
+  function loadImg(src) { // giải mã ảnh ở luồng phụ (decode) → lúc vẽ canvas không bị khựng
+    return IMGS[src] || (IMGS[src] = new Promise(function (res, rej) { var i = new Image(); i.decoding = 'async';
+      i.onload = function () { if (i.decode) i.decode().then(function () { res(i); }, function () { res(i); }); else res(i); };
+      i.onerror = function () { delete IMGS[src]; rej(new Error('img')); }; i.src = src; }));
+  }
+  var hq = Promise.resolve(); // ghép lần lượt từng đầu, nghỉ 1 nhịp giữa các đầu → không dồn việc làm đứng màn hình
+  function nextTick() { return new Promise(function (r) { (window.requestAnimationFrame || setTimeout)(function () { setTimeout(r, 0); }); }); }
+  function headUrl(cat, o) {
+    var box = headBox(cat), L = layersOf(cat, o);
+    return Promise.all(L.map(function (l) { return loadImg(BASE + cat.dir + '/' + l.img); })).then(function (ims) {
+      var job = hq.then(nextTick).then(function () { return draw(ims); }); hq = job.catch(function () {}); return job;
+    });
+    function draw(ims) {
+      var c = document.createElement('canvas'); c.width = c.height = HEAD_PX; var x = c.getContext('2d');
+      x.imageSmoothingEnabled = true; try { x.imageSmoothingQuality = 'medium'; } catch (_) {} // 'high' chậm gấp 6 lần, ở 128px nhìn như nhau
+      var kx = HEAD_PX / box.w, ky = HEAD_PX / box.h;
+      ims.forEach(function (im, i) { var l = L[i]; x.drawImage(im, (l.x - box.x) * kx, (l.y - box.y) * ky, l.w * kx, l.h * ky); });
+      // nén ảnh ở luồng phụ (toBlob) → hiện bằng blob URL; bản webp đổi sang chuỗi để lưu (lúc rảnh)
+      if (c.toBlob && window.URL && URL.createObjectURL) return new Promise(function (res) {
+        c.toBlob(function (b) {
+          if (!b) { res({ show: c.toDataURL('image/png') }); return; }
+          var keep = null;
+          if (b.type === 'image/webp' && window.FileReader) keep = new Promise(function (r) { var f = new FileReader(); f.onload = function () { r(String(f.result)); }; f.onerror = function () { r(null); }; f.readAsDataURL(b); });
+          res({ show: URL.createObjectURL(b), keep: keep });
+        }, 'image/webp', 0.82);
+      });
+      return { show: c.toDataURL('image/png') };
+    }
+  }
+  function headHtml(u, opts) {
+    return '<div class="yav yav-head" style="position:relative;overflow:hidden;aspect-ratio:1/1;' + (opts.size ? 'width:' + opts.size + 'px;' : 'width:100%;') + '">' +
+      '<img alt="" draggable="false" src="' + esc(u) + '" style="display:block;width:100%;height:100%"></div>';
+  }
+  function headLater(p, str, opts) { // chỗ trống → ghép xong thì thay (cùng 1 nhân vật chỉ ghép 1 lần)
+    var k = HEAD_VER + '.' + (window.YUMI_AV_V || 1) + '|' + str, id = 'yav' + Math.random().toString(36).slice(2);
+    var job = HPEND[k] || (HPEND[k] = load(p.style).then(function (cat) { return headUrl(cat, p.o); }).then(function (r) {
+      HMEM[k] = r.show; delete HPEND[k];
+      if (r.keep) r.keep.then(function (u) { if (u) headPut(k, u, true); }); else if (/^data:image\/webp/.test(r.show)) headPut(k, r.show, true);
+      return r.show; },
+      function (e) { delete HPEND[k]; throw e; }));
+    job.then(function (u) { var el = document.getElementById(id); if (el) el.outerHTML = headHtml(u, opts); },
+      function () { load(p.style).then(function (cat) { var el = document.getElementById(id); if (el) el.outerHTML = render(cat, p.o, opts); }).catch(function () {}); }); // lỗi → vẽ kiểu cũ
+    return '<div id="' + id + '" class="yav yav-head" style="aspect-ratio:1/1;' + (opts.size ? 'width:' + opts.size + 'px;' : 'width:100%;') + '"></div>';
+  }
   function html(str, opts) {
     var p = parse(str); if (!p) return '';
+    opts = opts || {};
+    if (opts.crop === 'head' && canHead) {
+      var u = headGet(HEAD_VER + '.' + (window.YUMI_AV_V || 1) + '|' + str);
+      return u ? headHtml(u, opts) : headLater(p, str, opts);
+    }
     if (CATS[p.style]) return render(CATS[p.style], p.o, opts);
     var id = 'yav' + Math.random().toString(36).slice(2);
     load(p.style).then(function (cat) { var el = document.getElementById(id); if (el) el.outerHTML = render(cat, p.o, opts); }).catch(function () {});
@@ -162,8 +232,13 @@
     body.token = A().token();
     return fetch(A().url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
   }
+  // ví (xu, shop, đồ đã có) lần trước lưu trên máy → mở tủ đồ hiện ngay, máy chủ trả lời thì cập nhật
+  function wkey(style, g) { var m = A() && A().me(); return 'yumi-wallet-' + (m && m.user) + '-' + style + '-' + (g || ''); }
+  function wcached(style, g) { try { var j = JSON.parse(localStorage.getItem(wkey(style, g))); return j && j.ok ? j : null; } catch (_) { return null; } }
+  function wkeep(style, g, j) { if (j && j.ok && j.shop) { try { localStorage.setItem(wkey(style, g), JSON.stringify(j)); } catch (_) {} } return j; }
   function wallet(style, g) {
-    return fetch(A().url + '?action=wallet&style=' + encodeURIComponent(style) + '&g=' + encodeURIComponent(g || '') + '&token=' + encodeURIComponent(A().token())).then(function (r) { return r.json(); });
+    return fetch(A().url + '?action=wallet&style=' + encodeURIComponent(style) + '&g=' + encodeURIComponent(g || '') + '&token=' + encodeURIComponent(A().token()))
+      .then(function (r) { return r.json(); }).then(function (j) { return wkeep(style, g, j); });
   }
   function toast(msg) { var t = document.createElement('div'); t.className = 'yw-toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600); }
   function myOutfit(style) { // nhân vật bộ này (mỗi bộ teen / ket lưu riêng)
@@ -193,6 +268,7 @@
         var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, sel = '';
         var saved = myOutfit(style) || {}, cur = withDefaults(cat, saved);
         var G = function () { return genderOf(cat, cur); };
+        W = creating ? null : wcached(style, G()); // hiện ngay bản lần trước
         // đổi thân (Boy/Girl) → bỏ đồ khác giới, mặc đồ cơ bản của giới mới cho ô trống (lúc tạo: thay hết)
         var applyBody = function (all) {
           var g = G(); Object.keys(cur).forEach(function (s) { var it = cat.items[cur[s]]; if (s !== 'body' && (!it || it.hide || !fitG(it, g))) delete cur[s]; });
@@ -285,7 +361,7 @@
             busy = true; sel = ''; draw();
             api({ action: 'buy', style: style, item: id, g: G() }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { busy = false; draw(); });
-              if (!j.ok) throw new Error(j.error); W = j; cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 You got ' + it.name + '! Don’t forget to tap Save');
+              if (!j.ok) throw new Error(j.error); W = wkeep(style, G(), j); cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 You got ' + it.name + '! Don’t forget to tap Save');
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
           }; });
           q('[data-chest]').forEach(function (b) { b.onclick = function () {
@@ -295,7 +371,7 @@
             var t0 = Date.now();
             api({ action: 'chest', style: style, pay: pay, g: G() }).then(function (j) {
               if (!j.ok) throw new Error(j.error);
-              return new Promise(function (r) { setTimeout(r, Math.max(0, 1400 - (Date.now() - t0))); }).then(function () { W = j; got = j.got; var it = cat.items[j.got]; cur[it.slot] = j.got; cur = normalize(cur, it.slot); });
+              return new Promise(function (r) { setTimeout(r, Math.max(0, 1400 - (Date.now() - t0))); }).then(function () { W = wkeep(style, G(), j); got = j.got; var it = cat.items[j.got]; cur[it.slot] = j.got; cur = normalize(cur, it.slot); });
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
           }; });
           q('[data-save]').forEach(function (b) { b.onclick = function () {
