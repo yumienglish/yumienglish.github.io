@@ -59,7 +59,7 @@
     { id: 'ket', path: /^\/KET\//i, keys: /^ket-/, idb: ['ket-selfstudy'], style: 'ket' },
     { id: 'pet', path: /^\/PET\//i, keys: /^pet-/, idb: ['pet-adventure'], style: 'teen' },
     { id: 'b2', path: /^\/B2-First\//i, keys: /^b2-/, idb: ['b2-adventure'], style: 'teen' },
-    { id: 'a1', path: /^\/A1-KID\//i, keys: /^(a1kid-|btvn-listening-trainer-a1-)/, idb: [] },
+    { id: 'a1', path: /^\/A1-KID\//i, keys: /^(a1kid-|btvn-listening-trainer-a1-)/, idb: [], style: 'a1' },
     { id: 'ielts', path: /^\/ielts-homework\//i, keys: /^(btvn-(?!listening-trainer-a1)|ielts-)/, idb: ['btvn-recordings'] }
   ];
   var DEVICE_ONLY = /-(sound|hi)$/, NO_SYNC = /-(sound|hi|tease|rec)$/, SYNC_PREFIX = 'yumi-sync-';

@@ -277,6 +277,7 @@
         };
         if (creating || (cur.body && cat.items[cur.body] && cat.items[cur.body].hide)) { if (!cur.body || cat.items[cur.body].hide) cur.body = withDefaults(cat, {}).body; applyBody(true); }
         var items = function (f) { return Object.keys(cat.items).filter(function (id) { return f(cat.items[id], id); }); };
+        var hasEv = function (e) { return !!e && items(function (it) { return it.ev === e.id; }).length > 0; }; // bộ này có đồ của sự kiện đó không
         var vis = function (it) { return !it.hide && (it.slot === 'body' || fitG(it, G())); }; // Boy/Girl luôn chọn được
         var owns = function (id) { var it = cat.items[id]; return vis(it) && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
         var thumb = function (it) { it = variant(it, G()); return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
@@ -306,8 +307,8 @@
           } else if (tab === 'shop') {
             if (!W) h += '<p class="yw-note">Loading the shop…</p>';
             else {
-              var fresh = W.fresh || [], ev = W.event;
-              var soon = !ev && eventSoon();
+              var fresh = W.fresh || [], ev = hasEv(W.event) ? W.event : null;
+              var soon = !ev && eventSoon(); if (!hasEv(soon)) soon = null; // bộ nhân vật không có đồ sự kiện (vd A1) → không hiện banner
               if (soon) { // xem trước đồ sự kiện sắp mở (khoá, chưa thử/mua được)
                 var peek = items(function (it) { return it.ev === soon.id && vis(it); });
                 h += '<div class="yw-ev"><span style="font-size:28px">' + soon.icon + '</span><div><b>' + esc(soon.name) + ' starts in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!</b><small>Sneak peek: limited items from ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '. Save your coins! 🪙</small></div></div>' +
@@ -330,7 +331,7 @@
             }
           } else {
             var left = items(function (it, id) { return it.src === 'chest' && vis(it) && !(it.rel && it.rel > todayStr()) && !(it.end && it.end < todayStr()) && !(W && W.owned.indexOf(id) >= 0); }).length;
-            if (W && W.event) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>Christmas items inside!</b><small>Snow Queen, Ice Prince, snowflake wings… until ' + esc(W.event.end.slice(8) + '/' + W.event.end.slice(5, 7)) + '</small></div></div>';
+            if (W && hasEv(W.event)) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>Christmas items inside!</b><small>Snow Queen, Ice Prince, snowflake wings… until ' + esc(W.event.end.slice(8) + '/' + W.event.end.slice(5, 7)) + '</small></div></div>';
             h += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
               '<p class="yw-note">The Exquisite Chest holds <b>exclusive</b> items you can’t buy in the shop, and it never gives you something you already have. ' + left + ' item' + (left === 1 ? '' : 's') + ' left to find.<span class="yw-vi">Rương Exquisite chứa đồ độc quyền không bán ở shop, và luôn ra món em chưa có.</span></p>' +
               '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Open free chest (' + (W ? W.freeChests : 0) + ')</button>' +
