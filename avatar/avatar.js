@@ -18,6 +18,11 @@
     ['set', '🎽', 'Outfits'], ['shoes', '👟', 'Shoes'], ['wings', '🪽', 'Wings'], ['hat', '🧢', 'Hats'], ['glasses', '🕶️', 'Glasses'],
     ['bag', '👜', 'Bags'], ['hand', '🎸', 'In hand'], ['pet', '🐾', 'Pets'], ['petacc', '🎀', 'Pet items']
   ];
+  // trang trí căn phòng sau nhân vật theo bộ: [cửa sổ (góc trên phải), 2 món trên tường trái]; số sao theo độ hiếm
+  var DECOR = { teen: ['✨ 🌙', '💡', '🎧'], ket: ['🪐 ✨', '🛰️', '🚀'], a1: ['☀️ 🌳', '🦉', '🌻'] };
+  var STARS = { c: 1, r: 2, e: 3, x: 4 };
+  // khung tính cỡ nhân vật trong tủ đồ: bỏ lề trống 2 bên (cánh / thú cưng vẫn được vẽ tràn ra ngoài)
+  var figBox = function (cat) { return { x: cat.w * 0.16, y: 0, w: cat.w * 0.68, h: cat.h }; };
   // nhóm lọc trong Shop (gộp nhiều ô cho ít nút, dễ tìm) – 'all' và 'new' là nhóm đặc biệt
   var SHOP_CATS = [
     ['all', '✨', 'All'], ['new', '🆕', 'New'], ['look', '💇', 'Hair & Face', ['hair', 'face']],
@@ -86,12 +91,12 @@
   }
   function render(cat, o, opts) {
     opts = opts || {};
-    var W = cat.w, H = cat.h, box = opts.crop === 'head' ? headBox(cat) : { x: 0, y: 0, w: W, h: H };
+    var W = cat.w, H = cat.h, box = opts.box || (opts.crop === 'head' ? headBox(cat) : { x: 0, y: 0, w: W, h: H });
     var layers = layersOf(cat, o).map(function (it) {
       return '<img alt="" draggable="false" src="' + esc(BASE + cat.dir + '/' + it.img) + '" style="position:absolute;left:' + ((it.x - box.x) / box.w * 100) + '%;top:' +
         ((it.y - box.y) / box.h * 100) + '%;width:' + (it.w / box.w * 100) + '%;height:' + (it.h / box.h * 100) + '%">';
     }).join('');
-    return '<div class="yav' + (opts.crop === 'head' ? ' yav-head' : '') + '" style="position:relative;overflow:hidden;aspect-ratio:' + box.w + '/' + box.h + ';' + (opts.size ? 'width:' + opts.size + 'px;' : 'width:100%;') + '">' + layers + '</div>';
+    return '<div class="yav' + (opts.crop === 'head' ? ' yav-head' : '') + '" style="position:relative;overflow:' + (opts.box ? 'visible' : 'hidden') + ';aspect-ratio:' + box.w + '/' + box.h + ';' + (opts.size ? 'width:' + opts.size + 'px;' : 'width:100%;') + '">' + layers + '</div>';
   }
   /** HTML nhân vật từ chuỗi outfit (bảng xếp hạng). Danh mục chưa nạp → chỗ trống, nạp xong tự vẽ lại. */
   /* Đầu nhân vật (bảng xếp hạng, trang chủ): ghép các lớp thành 1 ảnh nhỏ 128px rồi nhớ lại → mỗi bạn 1 ảnh nhỏ thay vì 5–8 lớp ảnh lớn. */
@@ -169,78 +174,84 @@
 
   /* ---------------- CSS ---------------- */
   var CSS = '' +
-    '.yw-ov{position:fixed;inset:0;z-index:2147483001;background:var(--ya-bg,#120d2b);color:var(--ya-text,#fff);font-family:var(--ya-font,system-ui);overflow-y:auto;-webkit-overflow-scrolling:touch}' +
-    '.yw{max-width:980px;margin:0 auto;padding:14px 14px 40px;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);grid-template-rows:auto auto 1fr;grid-template-areas:"top top" "left tabs" "left right";gap:0 16px}' +
-    '.yw>div{min-width:0}.yw-top{min-width:0;grid-area:top;margin-bottom:16px}.yw-left{grid-area:left}.yw>.yw-tabs{grid-area:tabs}.yw-right{grid-area:right}' +
-    '.yw-top{display:flex;align-items:center;gap:10px}' +
-    '.yw-top h2{flex:1;margin:0;font-family:var(--ya-head,inherit);font-size:26px}' +
-    '.yw-coin{font-weight:800;font-size:18px;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;border-radius:99px;padding:6px 14px;white-space:nowrap}' +
-    '.yw-x{border:0;background:rgba(255,255,255,.12);color:inherit;width:42px;height:42px;border-radius:50%;font-size:20px;cursor:pointer}' +
-    '.yw-stage{background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.18),rgba(255,255,255,.03) 70%);border-radius:22px;padding:6px;position:relative}' +
-    '.yw-stat{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;font-size:13px}' +
-    '.yw-stat span{background:rgba(255,255,255,.1);border-radius:99px;padding:3px 10px}' +
-    '.yw-save{display:block;width:100%;margin-top:10px;border:0;border-radius:14px;padding:12px;font:inherit;font-weight:800;font-size:18px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6))}' +
-    '.yw-save[disabled]{opacity:.5;cursor:default}' +
-    '.yw-tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:5px;border-radius:14px;margin-bottom:10px}' +
-    '.yw-tabs button{flex:1;border:0;background:none;color:inherit;font:inherit;font-weight:700;padding:9px 4px;border-radius:10px;cursor:pointer;opacity:.7}' +
-    '.yw-tabs button.on{opacity:1;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));color:#fff}' +
-    '.yw-slots{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;scrollbar-width:none}' +
-    '.yw-slots button{flex:none;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;font:inherit;font-size:13px;padding:6px 10px;border-radius:99px;cursor:pointer;white-space:nowrap}' +
-    '.yw-slots button.on{background:#fff;color:#111}' +
-    '.yw-cats{flex-wrap:wrap;overflow:visible}.yw-cats button{font-weight:700}.yw-cats button i{font-style:normal;opacity:.6;font-weight:600;margin-left:4px}' +
-    '.yw-cn{display:inline-block;margin-left:5px;background:linear-gradient(135deg,#ff2e88,#ffb300);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;vertical-align:1px;animation:yw-pulse 1.6s ease-in-out infinite}' +
-    '@keyframes yw-pulse{50%{transform:scale(1.12)}}' +
-    '.yw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}' +
-    '.yw-it{position:relative;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);border-radius:16px;padding:6px 6px 8px;cursor:pointer;text-align:center;color:inherit;font:inherit}' +
-    '.yw-it.on{border-color:var(--ya-acc,#ff2e88);box-shadow:0 0 0 3px rgba(255,46,136,.3)}' +
+    // khung kiểu game thay đồ: thanh trên · căn phòng (nhân vật to, dải nhóm dọc, nút lưu nổi) · cột đồ bên phải tự cuộn
+    '.yw-ov{position:fixed;inset:0;z-index:2147483001;background:var(--ya-bg,#120d2b);color:var(--ya-text,#fff);font-family:var(--ya-font,system-ui);overflow:hidden;' +
+      '--w1:#2a2157;--w2:#4a3a86;--f1:#6d4c38;--f2:#3f2a20;--rug1:#ff7ab8;--rug2:#c2185b;--win1:#0e0a2e;--win2:#3b2a78}' +
+    '.yw-st-ket{--w1:#e6f4ff;--w2:#c9e3ff;--f1:#b9c8df;--f2:#8ea2c2;--rug1:#a8d8ff;--rug2:#5aa9f0;--win1:#0b1240;--win2:#2b3a8f}' +
+    '.yw-st-a1{--w1:#eef9e2;--w2:#d3eebf;--f1:#dcae7a;--f2:#b47e4c;--rug1:#ffd9a8;--rug2:#f0a35e;--win1:#7fd0ff;--win2:#d4f3ff}' +
+    '.yw{--yw-lw:31%;--yw-rw:58px;position:relative;height:100%;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) var(--yw-lw);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"bar bar" "zone list";overflow:hidden;' +
+      'background:linear-gradient(180deg,var(--w1) 0,var(--w2) 70%,var(--f1) 70%,var(--f2) 100%)}' +
+    '.yw:before{content:"";position:absolute;left:0;right:0;top:70%;height:6px;background:rgba(0,0,0,.16)}' +
+    '.yw.wide{--yw-lw:58%}.yw.norail{--yw-rw:0px}' +
+    // thanh trên
+    '.yw-bar{grid-area:bar;position:relative;z-index:3;display:flex;align-items:center;gap:6px;padding:8px 8px 6px}' +
+    '.yw-x{flex:none;border:0;background:rgba(255,255,255,.92);color:#2b2440;width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}' +
+    '.yw-title{flex:1;margin:0;font-family:var(--ya-head,inherit);font-size:20px}' +
+    '.yw-tabs{flex:1;min-width:0;display:flex;gap:5px}' +
+    '.yw-tabs button{flex:1 1 auto;min-width:0;border:0;border-radius:99px;padding:8px 6px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;background:rgba(255,255,255,.9);color:#3a2f5c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.15)}' +
+    '.yw-tabs button.on{background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));color:#fff}' +
+    '.yw-coin{flex:none;font-weight:800;font-size:15px;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;border-radius:99px;padding:7px 11px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}' +
+    // căn phòng + nhân vật
+    '.yw-zone{grid-area:zone;position:relative;min-width:0;min-height:0}' +
+    '.yw-win{position:absolute;top:3%;right:calc(var(--yw-rw) + 18px);width:28%;max-width:150px;aspect-ratio:6/5;border-radius:10px;border:5px solid rgba(255,255,255,.95);background:linear-gradient(var(--win1),var(--win2));display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.6vw,24px);box-shadow:0 2px 0 rgba(0,0,0,.12)}' +
+    '.yw-dec{position:absolute;line-height:1;pointer-events:none;font-size:clamp(26px,7vw,46px)}.yw-dec.a{top:19%;left:5%}.yw-dec.b{top:38%;left:4%}' +
+    '.yw-figwrap{position:absolute;top:4px;bottom:8px;left:0;right:calc(var(--yw-rw) * .35);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}' +
+    '.yw-fig{position:relative;flex:none}.yw-fig .yav{filter:drop-shadow(0 6px 8px rgba(0,0,0,.22))}' +
+    '.yw-rug{position:absolute;left:50%;bottom:0;width:min(78%,320px);height:7%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(var(--rug1),var(--rug2));opacity:.8}' +
+    // dải nút nhóm dọc
+    '.yw-rail{position:absolute;top:0;bottom:0;right:3px;width:calc(var(--yw-rw) + 7px);z-index:2;display:flex;flex-direction:column;gap:7px;overflow-y:auto;scrollbar-width:none;padding:8px 7px 10px 0}.yw-rail::-webkit-scrollbar{display:none}' +
+    '.yw-rail>:first-child{margin-top:auto}.yw-rail>:last-child{margin-bottom:auto}' +
+    '.yw-rail button{position:relative;flex:none;width:100%;border:0;border-radius:16px;padding:6px 2px 5px;background:rgba(255,255,255,.9);color:#3a2f5c;font:inherit;font-size:9.5px;font-weight:800;line-height:1.1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.18)}' +
+    '.yw-rail button i{display:block;font-style:normal;font-size:22px;line-height:1.15;margin-bottom:2px}' +
+    '.yw-rail button.on{background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));color:#fff}' +
+    '.yw-rail .yw-cn{position:absolute;top:-5px;right:-6px;margin:0}' +
+    // nút lưu nổi (góc trên trái) + nhắc đang mặc thử
+    '.yw-save{position:absolute;left:8px;top:6px;z-index:2;border:0;border-radius:99px;padding:11px 18px;font:inherit;font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));box-shadow:0 4px 12px rgba(0,0,0,.28)}' +
+    '.yw-save[disabled]{opacity:.55;cursor:default;box-shadow:none}' +
+    '.yw-trying{position:absolute;left:8px;top:56px;z-index:2;max-width:128px;background:rgba(255,255,255,.94);color:#2b2440;border-radius:12px;padding:6px 10px;font-size:11.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.18)}' +
+    // cột đồ
+    '.yw-list{grid-area:list;position:relative;z-index:2;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:rgba(255,255,255,.9);color:#2b2440;padding:8px 7px 28px;border-radius:18px 0 0 0;box-shadow:-4px 0 18px rgba(0,0,0,.18)}' +
+    '.yw-dark .yw-list{background:rgba(24,17,56,.92);color:#fff}' +
+    '.yw-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}' +
+    '.yw-it{position:relative;display:block;width:100%;border:2px solid rgba(60,40,120,.14);background:#fff;border-radius:14px;padding:5px 5px 7px;cursor:pointer;text-align:center;color:inherit;font:inherit}' +
+    '.yw-dark .yw-it{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16)}' +
+    '.yw-ov .yw-r-r{border-color:#4fc3f7}.yw-ov .yw-r-e{border-color:#b388ff}.yw-ov .yw-r-x{border-color:#ffd54f;background:linear-gradient(160deg,rgba(255,213,79,.24),rgba(255,255,255,.06))}' +
+    '.yw-ov .yw-it.on{border-color:var(--ya-acc,#ff2e88);box-shadow:0 0 0 3px rgba(255,46,136,.28)}' +
     '.yw-it .yw-th{aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
     '.yw-it .yw-th img{max-width:100%;max-height:100%;object-fit:contain}' +
-    '.yw-it b{display:block;font-size:12.5px;line-height:1.25;margin-top:4px}' +
-    '.yw-it small{display:block;font-size:12px;opacity:.85;margin-top:2px}' +
-    '.yw-it .yw-lock{position:absolute;top:6px;right:6px;font-size:14px}' +
-    '.yw-r-r{border-color:#4fc3f7}.yw-r-e{border-color:#b388ff}.yw-r-x{border-color:#ffd54f;background:linear-gradient(160deg,rgba(255,213,79,.18),rgba(255,255,255,.04))}' +
-    '.yw-buy{margin-top:6px;border:0;border-radius:10px;padding:6px 8px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;width:100%}' +
+    '.yw-it b{display:block;font-size:11.5px;line-height:1.25;margin-top:3px}' +
+    '.yw-it small{display:block;font-size:10.5px;opacity:.8;margin-top:1px}' +
+    '.yw-stars{display:block;font-size:10px;letter-spacing:1px;color:#ffb300;margin-top:2px}' +
+    '.yw-it small.yw-ltdt{color:#e53935;opacity:1;font-weight:800}' +
+    '.yw-chk{position:absolute;top:5px;right:5px;z-index:1;width:20px;height:20px;border-radius:50%;background:var(--ya-acc,#ff2e88);color:#fff;font-size:12px;font-weight:900;line-height:20px;box-shadow:0 0 0 2px #fff}' +
+    '.yw-new,.yw-soon{position:absolute;top:5px;left:5px;z-index:1;color:#fff;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:99px;background:linear-gradient(135deg,#ff2e88,#ffb300)}.yw-soon{background:#e53935}' +
+    '.yw-buy{display:block;margin-top:5px;border:0;border-radius:10px;padding:6px 4px;font:inherit;font-weight:800;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;width:100%}' +
     '.yw-buy[disabled]{opacity:.45;cursor:default}' +
-    '.yw-it.lock{opacity:.55;cursor:default}.yw-it.lock .yw-th{filter:grayscale(.6)}.yw-need{display:block;margin-top:6px;font-size:12px;font-weight:700;color:#ffcf3f}' +
-    '.yw-new{position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#ff2e88,#ffb300);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px}' +
-    '.yw-acts{display:flex;gap:6px;margin-top:6px}.yw-acts button{flex:1;border:0;border-radius:10px;padding:7px 4px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer}' +
-    '.yw-acts .yw-tryb{background:rgba(255,255,255,.16);color:inherit}.yw-acts .yw-buyb{background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300}' +
-    '.yw-note{font-size:13px;opacity:.8;margin:4px 0 12px}' +
-    '.yw-chest{text-align:center;padding:10px}' +
-    '.yw-chest .yw-box{font-size:96px;line-height:1;display:inline-block;filter:drop-shadow(0 0 18px rgba(255,213,79,.7))}' +
+    '.yw-own{display:block;margin-top:5px;font-size:11px;font-weight:800;color:#2e9d4f}.yw-dark .yw-own{color:#7ee2a0}' +
+    '.yw-need{display:block;margin-top:4px;font-size:10.5px;font-weight:700;color:#d9480f}.yw-dark .yw-need{color:#ffcf3f}' +
+    '.yw-it.lock{cursor:default;opacity:.6}.yw-it.lock .yw-th{filter:grayscale(.5)}' +
+    '.yw-cn{display:inline-block;margin-left:4px;background:linear-gradient(135deg,#ff2e88,#ffb300);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;animation:yw-pulse 1.6s ease-in-out infinite}' +
+    '@keyframes yw-pulse{50%{transform:scale(1.12)}}' +
+    '.yw-note{font-size:11.5px;opacity:.85;margin:2px 2px 8px;line-height:1.35}.yw-vi{display:block;font-size:10.5px;opacity:.7;font-style:italic;margin-top:2px}' +
+    '.yw-sec{font-size:11px;font-weight:800;opacity:.8;margin:14px 2px 6px}' +
+    '.yw-ev{background:linear-gradient(135deg,#c62828,#2e7d32);color:#fff;border-radius:12px;padding:7px 9px;margin:0 0 8px;font-weight:800;font-size:12px;line-height:1.25}.yw-ev small{display:block;font-weight:600;opacity:.92;font-size:10.5px;margin-top:2px}' +
+    // rương
+    '.yw-chest{text-align:center;padding:6px 2px}' +
+    '.yw-chest .yw-box{font-size:80px;line-height:1;display:inline-block;filter:drop-shadow(0 0 18px rgba(255,213,79,.7))}' +
     '.yw-chest .yw-box.shake{animation:yw-sh .6s infinite}@keyframes yw-sh{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}' +
-    '.yw-chest .yw-got{max-width:220px;margin:10px auto;animation:yw-pop .5s cubic-bezier(.2,1.5,.5,1)}@keyframes yw-pop{from{transform:scale(.3);opacity:0}}' +
-    '.yw-chest .yw-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}' +
-    '.yw-chest .yw-btns button{border:0;border-radius:14px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6))}' +
+    '.yw-chest .yw-got{max-width:200px;margin:8px auto;animation:yw-pop .5s cubic-bezier(.2,1.5,.5,1)}@keyframes yw-pop{from{transform:scale(.3);opacity:0}}' +
+    '.yw-chest .yw-note{font-size:12px}' +
+    '.yw-chest .yw-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}' +
+    '.yw-chest .yw-btns button{border:0;border-radius:14px;padding:10px 14px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6))}' +
     '.yw-chest .yw-btns button[disabled]{opacity:.45;cursor:default}' +
-    '.yw-earn{font-size:13.5px;line-height:1.6;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 14px;margin-top:14px}' +
-    '.yw-earn b{color:#ffcf3f}.yw-vi{display:block;font-size:12px;opacity:.7;font-style:italic;margin-top:2px}.yw-earn .yw-vi{margin-top:6px}' +
     '.yw-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:12px;z-index:2147483002;font-weight:700;max-width:90vw;text-align:center}' +
     '.yav-head{border-radius:50%}' +
-    // giao diện sáng (VD lớp KET): khung/viền tối nhạt thay cho trắng mờ
-    '.yw-light .yw-x,.yw-light .yw-stat span,.yw-light .yw-tabs,.yw-light .yw-it,.yw-light .yw-slots button,.yw-light .yw-earn{background:rgba(40,20,90,.06);border-color:rgba(40,20,90,.14)}' +
-    '.yw-light .yw-it.on{border-color:var(--ya-acc,#ff2e88)}.yw-light .yw-slots button.on{background:var(--ya-text,#22303c);color:#fff}.yw-light .yw-stage{background:radial-gradient(circle at 50% 40%,#fff,rgba(255,255,255,.4) 70%)}' +
-    '.yw-light .yw-earn b{color:#d9480f}.yw-light .yw-need{color:#d9480f}.yw-light .yw-left{background:var(--ya-bg)}' +
-    '.yw-ev{background:linear-gradient(135deg,#c62828,#2e7d32);color:#fff;border-radius:14px;padding:10px 12px;margin:0 0 10px;font-weight:800;display:flex;align-items:center;gap:8px}' +
-    '.yw-ev small{display:block;font-weight:600;opacity:.9}.yw-ev b{font-size:16px}' +
-    '.yw-ltd{position:absolute;top:6px;right:6px;background:#e53935;color:#fff;font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:99px}' +
-    '.yw-new,.yw-ltd{z-index:1}' + // ảnh món khoá có filter (tạo lớp riêng) → không được che nhãn NEW/SOON
-    // điện thoại: 2 bên song song – nhân vật trái (đứng yên khi cuộn), đồ phải (lưới 2 cột, thẻ gọn); tab trải ngang trên cùng
-    '@media(max-width:720px){' +
-    '.yw{grid-template-columns:minmax(0,38fr) minmax(0,62fr);grid-template-rows:auto auto 1fr;grid-template-areas:"top top" "tabs tabs" "left right";gap:0 10px;padding:10px 10px 30px}' +
-    '.yw-top{margin-bottom:10px}.yw-top h2{font-size:20px}.yw-coin{font-size:15px;padding:5px 11px}.yw-x{width:36px;height:36px;font-size:17px}' +
-    '.yw-left{position:sticky;top:8px;align-self:start;z-index:2}.yw-stage{border-radius:16px;padding:2px}' +
-    '.yw-save{font-size:13.5px;padding:9px 4px;border-radius:12px;margin-top:8px}' +
-    '.yw-tabs{margin-bottom:10px}.yw-tabs button{padding:8px 2px;font-size:14px}' +
-    '.yw-slots{gap:5px}.yw-slots button{font-size:12px;padding:5px 8px}.yw-cn{font-size:9px;padding:1px 5px;margin-left:3px}' +
-    '.yw-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}' +
-    // xem trước đồ sự kiện: 1 hàng vuốt ngang, không đẩy đồ mua được xuống dưới
-    '.yw-grid.yw-peek{display:flex;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}.yw-peek>.yw-it{flex:0 0 46%}' +
-    '.yw-it{border-radius:12px;padding:4px 4px 6px}.yw-it b{font-size:11.5px}.yw-it small{font-size:10.5px}' +
-    '.yw-buy{font-size:12px;padding:5px 2px;margin-top:4px}.yw-acts{flex-direction:column;gap:4px;margin-top:4px}.yw-acts button{padding:6px 2px;font-size:12px}' +
-    '.yw-need{font-size:10.5px;margin-top:3px}.yw-new{top:4px;left:4px;font-size:9.5px;padding:1px 5px}.yw-ltd{top:4px;right:4px;font-size:9px;padding:1px 5px}' +
-    '.yw-note{font-size:12px;margin:2px 0 10px}.yw-ev{padding:8px;gap:6px;font-size:12px}.yw-ev b{font-size:13px}.yw-ev>span{font-size:22px!important}' +
-    '.yw-chest{padding:4px}.yw-chest .yw-box{font-size:72px}.yw-chest .yw-btns{gap:6px}.yw-chest .yw-btns button{padding:10px 12px;font-size:13px}}';
+    '@media(max-width:370px){.yw-tabs .tl{display:none}.yw-tabs button{font-size:17px}}' +
+    // máy tính: khung game đứng giữa, cột đồ rộng 2 cột
+    '@media(min-width:721px){.yw{--yw-lw:360px;--yw-rw:70px;height:calc(100% - 32px);margin:16px auto;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}.yw.wide{--yw-lw:460px}' +
+      '.yw-list .yw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.yw-it b{font-size:12.5px}.yw-rail button{font-size:10.5px}.yw-rail button i{font-size:26px}' +
+      '.yw-bar{padding:12px 14px 8px}.yw-tabs{flex:0 1 420px}.yw-tabs button{font-size:14.5px;padding:9px 10px}.yw-bar .yw-coin{margin-left:auto}' +
+      '.yw-save{font-size:17px;padding:12px 24px;left:16px;top:10px}.yw-trying{left:16px;top:68px;max-width:none}}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
 
   /* ---------------- máy chủ ---------------- */
@@ -276,13 +287,13 @@
     injectCss();
     return load(style).then(function (cat) {
       return new Promise(function (resolve) {
-        var ov = document.createElement('div'); ov.className = 'yw-ov';
+        var ov = document.createElement('div'); ov.className = 'yw-ov yw-st-' + (DECOR[style] ? style : 'teen');
         var th = opts.theme || {};
         ['bg', 'text', 'acc', 'acc2', 'font', 'head'].forEach(function (k) { if (th[k]) ov.style.setProperty('--ya-' + k, th[k]); });
-        if (th.bg && !th.dark) ov.classList.add('yw-light'); // trang nền sáng
+        ov.classList.add(th.bg && !th.dark ? 'yw-light' : 'yw-dark'); // trang nền sáng / tối
         document.body.appendChild(ov);
         try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
-        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, sel = '', shopCat = 'all';
+        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, shopCat = 'all';
         var saved = myOutfit(style) || {}, cur = withDefaults(cat, saved);
         var G = function () { return genderOf(cat, cur); };
         W = creating ? null : wcached(style, G()); // hiện ngay bản lần trước
@@ -299,91 +310,125 @@
         var owns = function (id) { var it = cat.items[id]; return vis(it) && (it.src === 'free' || (W && W.owned.indexOf(id) >= 0)); };
         var thumb = function (it) { it = variant(it, G()); return '<div class="yw-th"><img loading="lazy" alt="" src="' + esc(BASE + cat.dir + '/' + (it.thumb || it.img)) + '"></div>'; };
         var refetch = function () { wallet(style, G()).then(function (j) { if (j.ok) { W = j; draw(); } }).catch(function () {}); };
-        function close(v) { ov.remove(); try { document.documentElement.style.overflow = ''; } catch (_) {} resolve(v); }
+        var base = function () { return withDefaults(cat, saved); };
+        var mineNow = function (id) { var it = cat.items[id]; return !!it && (it.src === 'free' || !!(W && W.owned.indexOf(id) >= 0)); };
+        var notMine = function () { return Object.keys(cur).filter(function (s) { return cur[s] && !mineNow(cur[s]); }); }; // ô đang mặc thử đồ chưa mua
+        // cởi món ở ô này → trả lại món đã lưu (nếu có); nhóm quần áo trống hẳn → mặc lại quần áo đã lưu
+        var CLOTHES = ['top', 'bottom', 'dress', 'set'];
+        var takeOff = function (s) {
+          var b = base(), off = cur[s]; delete cur[s];
+          if (b[s] && b[s] !== off && mineNow(b[s])) cur[s] = b[s];
+          if (CLOTHES.indexOf(s) >= 0 && !CLOTHES.some(function (k) { return cur[k]; })) CLOTHES.forEach(function (k) { if (b[k] && mineNow(b[k])) cur[k] = b[k]; });
+          cur = normalize(cur, cur.set ? 'set' : cur.dress ? 'dress' : 'top');
+        };
+        var lastView = '';
+        var view = function () { return tab + '|' + (tab === 'wardrobe' ? slot : tab === 'shop' ? shopCat : ''); };
+        // cỡ nhân vật: vừa khít chiều cao hoặc chiều rộng phần căn phòng
+        function fit() {
+          var z = ov.querySelector('.yw-figwrap'), f = ov.querySelector('.yw-fig'); if (!z || !f) return;
+          var b = figBox(cat), w = Math.min(z.clientWidth, z.clientHeight * b.w / b.h); f.style.width = Math.max(80, Math.floor(w)) + 'px';
+        }
+        window.addEventListener('resize', fit);
+        function close(v) { window.removeEventListener('resize', fit); ov.remove(); try { document.documentElement.style.overflow = ''; } catch (_) {} resolve(v); }
         function draw() {
-          var dirty = JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved));
-          var h = '<div class="yw"><div class="yw-top"><h2>' + (creating ? '✨ Create your character' : '👕 Wardrobe') + '</h2>' +
-            '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating ? '' : '<button class="yw-x" data-x aria-label="Close">✕</button>') + '</div>' +
-            '<div class="yw-left"><div class="yw-stage">' + render(cat, cur) + '</div>' +
-            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save character') + '</button></div>';
-          // hàng tab tách riêng: máy tính nằm trên cột phải, điện thoại trải ngang cả màn hình
-          if (!creating) h += '<div class="yw-tabs"><button data-t="wardrobe"' + (tab === 'wardrobe' ? ' class="on"' : '') + '>👕 Wardrobe</button><button data-t="shop"' + (tab === 'shop' ? ' class="on"' : '') +
-            '>🛍️ Shop</button><button data-t="chest"' + (tab === 'chest' ? ' class="on"' : '') + '>💎 Chest</button></div>';
-          h += '<div class="yw-right">';
+          var dirty = JSON.stringify(cur) !== JSON.stringify(base());
+          var oldList = ov.querySelector('.yw-list'), oldRail = ov.querySelector('.yw-rail');
+          var keepList = oldList && lastView === view() ? oldList.scrollTop : 0, keepRail = oldRail && lastView.split('|')[0] === tab ? oldRail.scrollTop : 0;
+          var d = DECOR[style] || DECOR.teen, rail = '', body = '';
+          var stars = function (it) { return '<span class="yw-stars">' + new Array((STARS[it.rar] || 1) + 1).join('★') + '</span>'; };
+          var chk = function (id) { return cur[cat.items[id].slot] === id ? '<span class="yw-chk">✔</span>' : ''; };
+          var dm = function (s) { return esc(s.slice(8) + '/' + s.slice(5, 7)); };
           if (tab === 'wardrobe') {
             var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free' && vis(it)); }).length; });
             if (!slots.some(function (s) { return s[0] === slot; }) && slots[0]) slot = slots[0][0];
-            h += '<div class="yw-slots">' + slots.map(function (s) { return '<button data-s="' + s[0] + '"' + (s[0] === slot ? ' class="on"' : '') + '>' + s[1] + ' ' + s[2] + '</button>'; }).join('') + '</div>';
+            rail = slots.map(function (s) { return '<button data-s="' + s[0] + '"' + (s[0] === slot ? ' class="on"' : '') + '><i>' + s[1] + '</i>' + s[2] + '</button>'; }).join('');
             var mine = items(function (it, id) { return it.slot === slot && owns(id); });
             var opt = slot !== 'body' && slot !== 'hair';
-            h += '<div class="yw-grid">' + (opt ? '<button class="yw-it' + (!cur[slot] ? ' on' : '') + '" data-eq=""><div class="yw-th" style="font-size:34px">' + (slot === 'face' ? '🙂' : '🚫') + '</div><b>' + (slot === 'face' ? 'Default' : 'Take off') + '</b></button>' : '') +
+            body = (creating ? '<p class="yw-note">Pick your starter look! Do homework to earn 🪙 and buy more.<span class="yw-vi">Chọn đồ cơ bản. Làm bài tập kiếm xu để mua thêm đồ nhé!</span></p>' : '') +
+              '<div class="yw-grid">' + (opt ? '<button class="yw-it' + (!cur[slot] ? ' on' : '') + '" data-eq=""><div class="yw-th" style="font-size:34px">' + (slot === 'face' ? '🙂' : '🚫') + '</div><b>' + (slot === 'face' ? 'Default' : 'Take off') + '</b></button>' : '') +
               mine.map(function (id) { var it = cat.items[id];
-                return '<button class="yw-it yw-r-' + (it.rar || 'c') + (cur[slot] === id ? ' on' : '') + '" data-eq="' + id + '">' + thumb(it) + '<b>' + esc(it.name) + '</b></button>'; }).join('') + '</div>';
-            if (!creating) h += '<p class="yw-note">Want more? Visit the 🛍️ Shop or open a 💎 Chest!</p>';
-            else h += '<p class="yw-note">These are your starter clothes. Do your homework to earn 🪙 coins and buy cool new items in the shop!<span class="yw-vi">Đây là đồ cơ bản. Làm bài tập để kiếm xu mua thêm đồ xịn ở shop nhé!</span></p>';
+                return '<button class="yw-it yw-r-' + (it.rar || 'c') + (cur[slot] === id ? ' on' : '') + '" data-eq="' + id + '">' + chk(id) + thumb(it) + '<b>' + esc(it.name) + '</b>' + (slot === 'body' ? '' : stars(it)) + '</button>'; }).join('') + '</div>';
           } else if (tab === 'shop') {
-            if (!W) h += '<p class="yw-note">Loading the shop…</p>';
+            if (!W) body = '<p class="yw-note">Loading the shop…</p>';
             else {
               var fresh = W.fresh || [], ev = hasEv(W.event) ? W.event : null;
-              var soon = !ev && eventSoon(); if (!hasEv(soon)) soon = null; // bộ nhân vật không có đồ sự kiện (vd A1) → không hiện banner
+              var soon = !ev && eventSoon(); if (!hasEv(soon)) soon = null; // bộ nhân vật không có đồ sự kiện (vd A1) → không hiện
               var all = W.shop.filter(function (id) { return cat.items[id] && vis(cat.items[id]); })
                 .sort(function (a, b) { var ea = !!cat.items[a].ev, eb = !!cat.items[b].ev; return (eb - ea) || (fresh.indexOf(b) >= 0) - (fresh.indexOf(a) >= 0) || cat.items[a].price - cat.items[b].price; });
-              // nhóm lọc (đặt trên cùng): chỉ hiện nhóm có hàng; nhóm có đồ mới tuần này → chữ NEW
+              // nhóm lọc (dải dọc): chỉ hiện nhóm có hàng; nhóm có đồ mới tuần này → chữ NEW
               var inCat = function (c, id) { return c[0] === 'all' || (c[0] === 'new' ? fresh.indexOf(id) >= 0 : c[3].indexOf(cat.items[id].slot) >= 0); };
               var cats = SHOP_CATS.filter(function (c) { return all.some(function (id) { return inCat(c, id); }); });
               if (!cats.some(function (c) { return c[0] === shopCat; })) shopCat = 'all';
               var curCat = cats.filter(function (c) { return c[0] === shopCat; })[0] || SHOP_CATS[0];
               var list = all.filter(function (id) { return inCat(curCat, id); });
-              if (all.length) h += '<div class="yw-slots yw-cats">' + cats.map(function (c) {
+              rail = cats.map(function (c) {
                 var n = all.filter(function (id) { return inCat(c, id); }).length, nn = c[0] === 'all' ? 0 : all.filter(function (id) { return inCat(c, id) && fresh.indexOf(id) >= 0; }).length;
-                return '<button data-c="' + c[0] + '"' + (c[0] === shopCat ? ' class="on"' : '') + '>' + c[1] + ' ' + c[2] +
-                  (c[0] === 'new' ? '<span class="yw-cn">' + n + '</span>' : nn ? '<span class="yw-cn">NEW</span>' : '<i>' + n + '</i>') + '</button>'; }).join('') + '</div>';
-              if (soon) { // xem trước đồ sự kiện sắp mở (khoá, chưa thử/mua được) – lọc theo nhóm đang chọn, nhóm New thì không hiện
-                var peek = shopCat === 'new' ? [] : items(function (it) { return it.ev === soon.id && vis(it) && (shopCat === 'all' || curCat[3].indexOf(it.slot) >= 0); });
-                h += '<div class="yw-ev"><span style="font-size:28px">' + soon.icon + '</span><div><b>' + esc(soon.name) + ' starts in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!</b><small>Sneak peek: limited items from ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '. Save your coins! 🪙</small></div></div>' +
-                  (peek.length ? '<div class="yw-grid yw-peek" style="margin-bottom:14px">' + peek.map(function (id) { var it = cat.items[id];
-                    return '<div class="yw-it lock yw-r-' + (it.rar || 'c') + '"><span class="yw-ltd">SOON ❄️</span>' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (it.src === 'chest' ? '💎 Chest' : '🪙 ' + it.price) + '</small><span class="yw-need">Coming ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '</span></div>'; }).join('') + '</div>' : '');
-              }
-              if (ev) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>' + esc(ev.name) + '</b><small>Limited Christmas items · ends in ' + daysLeft(ev) + ' day' + (daysLeft(ev) === 1 ? '' : 's') + '!</small></div></div>';
-              h += '<p class="yw-note">' + (shopCat === 'new' ? 'Just arrived this week! 🎉' : 'New items arrive every Monday!') + ' Tap an item you can afford to try it on or buy it.<span class="yw-vi">' + (shopCat === 'new' ? 'Hàng mới về tuần này!' : 'Mỗi thứ Hai shop có thêm hàng mới.') + ' Đủ xu thì chạm vào món để thử hoặc mua.</span></p><div class="yw-grid">' + list.map(function (id) {
+                return '<button data-c="' + c[0] + '"' + (c[0] === shopCat ? ' class="on"' : '') + '><i>' + c[1] + '</i>' + c[2] +
+                  (c[0] === 'new' ? '<span class="yw-cn">' + n + '</span>' : nn ? '<span class="yw-cn">NEW</span>' : '') + '</button>'; }).join('');
+              if (ev) body += '<div class="yw-ev">🎄 ' + esc(ev.name) + '<small>Limited items · ends in ' + daysLeft(ev) + ' day' + (daysLeft(ev) === 1 ? '' : 's') + '!</small></div>';
+              else if (soon) body += '<div class="yw-ev">' + soon.icon + ' ' + esc(soon.name) + ' in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!<small>Save your coins! 🪙</small></div>';
+              // chạm thẻ = mặc thử ngay (mọi món, kể cả chưa đủ xu); chạm lần nữa = cởi ra
+              body += '<div class="yw-grid">' + list.map(function (id) {
                 var it = cat.items[id], have = W.owned.indexOf(id) >= 0, can = W.coins >= it.price;
-                var tag = (fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '') + (it.ev ? '<span class="yw-ltd">LIMITED ❄️</span>' : '');
-                var cls = 'yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + (!have && !can ? ' lock' : '');
-                var foot = have ? '<button class="yw-buy" data-try="' + id + '">✔ Owned · wear</button>'
-                  : !can ? '<span class="yw-need">🔒 Need ' + (it.price - W.coins) + ' more 🪙</span><button class="yw-buy" disabled>🪙 ' + it.price + '</button>'
-                  : sel === id ? '<div class="yw-acts"><button class="yw-tryb" data-try="' + id + '">👀 Try on</button><button class="yw-buyb" data-buy="' + id + '" ' + (busy ? 'disabled' : '') + '>🪙 Buy ' + it.price + '</button></div>'
-                  : '<button class="yw-buy" data-sel="' + id + '">🪙 ' + it.price + '</button>';
-                return '<div class="' + cls + '"' + (!have && can ? ' data-sel="' + id + '"' : '') + '>' + tag + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (RAR[it.rar] || '') + '</small>' + foot + '</div>';
+                var foot = have ? '<span class="yw-own">✔ Owned</span>'
+                  : can ? '<button class="yw-buy" data-buy="' + id + '" ' + (busy ? 'disabled' : '') + '>🪙 Buy ' + it.price + '</button>'
+                  : '<span class="yw-need">🔒 Need ' + (it.price - W.coins) + ' more</span><button class="yw-buy" disabled>🪙 ' + it.price + '</button>';
+                return '<div class="yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + '" data-try="' + id + '">' + (fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '') + chk(id) +
+                  thumb(it) + '<b>' + esc(it.name) + '</b>' + stars(it) + (it.ev ? '<small class="yw-ltdt">❄️ Limited</small>' : '') + foot + '</div>';
               }).join('') + '</div>' + (list.length ? '' : '<p class="yw-note">Nothing here yet. New items arrive every Monday!</p>');
+              if (soon) { // đồ sự kiện sắp mở: xếp cuối danh sách, theo nhóm đang chọn (nhóm New thì không hiện)
+                var peek = shopCat === 'new' ? [] : items(function (it) { return it.ev === soon.id && vis(it) && (shopCat === 'all' || curCat[3].indexOf(it.slot) >= 0); });
+                if (peek.length) body += '<p class="yw-sec">' + soon.icon + ' Coming ' + dm(soon.start) + '</p><div class="yw-grid">' + peek.map(function (id) { var it = cat.items[id];
+                  return '<div class="yw-it lock yw-r-' + (it.rar || 'c') + '"><span class="yw-soon">SOON</span>' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (it.src === 'chest' ? '💎 Chest' : '🪙 ' + it.price) + '</small></div>'; }).join('') + '</div>';
+              }
             }
           } else {
             var left = items(function (it, id) { return it.src === 'chest' && vis(it) && !(it.rel && it.rel > todayStr()) && !(it.end && it.end < todayStr()) && !(W && W.owned.indexOf(id) >= 0); }).length;
-            if (W && hasEv(W.event)) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>Christmas items inside!</b><small>Snow Queen, Ice Prince, snowflake wings… until ' + esc(W.event.end.slice(8) + '/' + W.event.end.slice(5, 7)) + '</small></div></div>';
-            h += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
+            if (W && hasEv(W.event)) body += '<div class="yw-ev">🎄 Christmas items inside!<small>Snow Queen, Ice Prince, snowflake wings… until ' + dm(W.event.end) + '</small></div>';
+            body += '<div class="yw-chest">' + (got ? '<div class="yw-got">' + thumb(cat.items[got]) + '<b>👑 ' + esc(cat.items[got].name) + '</b></div>' : '<div class="yw-box' + (busy ? ' shake' : '') + '">💎</div>') +
               '<p class="yw-note">The Exquisite Chest holds <b>exclusive</b> items you can’t buy in the shop, and it never gives you something you already have. ' + left + ' item' + (left === 1 ? '' : 's') + ' left to find.<span class="yw-vi">Rương Exquisite chứa đồ độc quyền không bán ở shop, và luôn ra món em chưa có.</span></p>' +
               '<div class="yw-btns"><button data-chest="free" ' + (busy || !W || !W.freeChests || !left ? 'disabled' : '') + '>🎁 Open free chest (' + (W ? W.freeChests : 0) + ')</button>' +
               '<button data-chest="coins" ' + (busy || !W || W.coins < W.chestPrice || !left ? 'disabled' : '') + '>🪙 ' + (W ? W.chestPrice : 600) + ' coins</button></div>' +
               '<p class="yw-note">Free chests: 1 for every 5 lessons, and 1 for every 3 lessons that are 100% right on the first try.<span class="yw-vi">Rương tặng: cứ 5 bài tập → 1 rương, cứ 3 bài đúng hết ngay lần 1 → 1 rương.</span></p></div>';
           }
-          ov.innerHTML = h + '</div></div>';
+          var nm = creating ? [] : notMine();
+          var tabs = [['wardrobe', '👕', 'Wardrobe'], ['shop', '🛍️', 'Shop'], ['chest', '💎', 'Chest']].map(function (t) {
+            return '<button data-t="' + t[0] + '"' + (tab === t[0] ? ' class="on"' : '') + '>' + t[1] + '<span class="tl"> ' + t[2] + '</span></button>'; }).join('');
+          ov.innerHTML = '<div class="yw' + (tab === 'chest' ? ' wide' : '') + (rail ? '' : ' norail') + '"><div class="yw-bar">' +
+            (creating ? '<h2 class="yw-title">✨ Create your character</h2>' : '<button class="yw-x" data-x aria-label="Close">✕</button><div class="yw-tabs">' + tabs + '</div><span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>') + '</div>' +
+            '<div class="yw-zone"><div class="yw-win">' + d[0] + '</div><span class="yw-dec a">' + d[1] + '</span><span class="yw-dec b">' + d[2] + '</span>' +
+            '<div class="yw-figwrap"><div class="yw-rug"></div><div class="yw-fig">' + render(cat, cur, { box: figBox(cat) }) + '</div></div>' +
+            (rail ? '<div class="yw-rail">' + rail + '</div>' : '') +
+            (nm.length ? '<div class="yw-trying">👀 Trying on · buy to keep!</div>' : '') +
+            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save') + '</button></div>' +
+            '<div class="yw-list">' + body + '</div></div>';
+          fit();
+          var nl = ov.querySelector('.yw-list'), nr = ov.querySelector('.yw-rail');
+          if (nl) nl.scrollTop = keepList; if (nr) nr.scrollTop = keepRail;
+          lastView = view();
           bind();
         }
         function bind() {
           var q = function (s) { return [].slice.call(ov.querySelectorAll(s)); };
-          q('[data-x]').forEach(function (b) { b.onclick = function () { if (JSON.stringify(cur) !== JSON.stringify(withDefaults(cat, saved)) && !confirm('You haven’t saved your character. Leave anyway?')) return; close(); }; });
+          q('[data-x]').forEach(function (b) { b.onclick = function () { if (JSON.stringify(cur) !== JSON.stringify(base()) && !confirm('You haven’t saved your character. Leave anyway?')) return; close(); }; });
           q('[data-t]').forEach(function (b) { b.onclick = function () { tab = b.dataset.t; got = null; draw(); }; });
           q('[data-s]').forEach(function (b) { b.onclick = function () { slot = b.dataset.s; draw(); }; });
-          q('[data-c]').forEach(function (b) { b.onclick = function () { shopCat = b.dataset.c; sel = ''; draw(); }; });
+          q('[data-c]').forEach(function (b) { b.onclick = function () { shopCat = b.dataset.c; draw(); }; });
           q('[data-eq]').forEach(function (b) { b.onclick = function () { var id = b.dataset.eq; if (id) { cur[slot] = id; cur = normalize(cur, slot); } else delete cur[slot];
             // chọn Boy/Girl → bỏ đồ khác giới + đồ cơ bản của giới mới (lúc tạo: thay hết), shop/rương theo giới mới
             if (slot === 'body' && id) { applyBody(creating); if (!creating) refetch(); }
             draw(); }; });
-          q('[data-sel]').forEach(function (b) { b.onclick = function (e) { if (e.target.closest('[data-try],[data-buy]')) return; e.stopPropagation(); sel = sel === b.dataset.sel ? '' : b.dataset.sel; draw(); }; });
-          q('[data-try]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var it = cat.items[b.dataset.try]; cur[it.slot] = b.dataset.try; cur = normalize(cur, it.slot); draw(); }; });
-          q('[data-buy]').forEach(function (b) { b.onclick = function () {
+          q('[data-try]').forEach(function (b) { b.onclick = function (e) {
+            if (e.target.closest('[data-buy]')) return;
+            var id = b.dataset.try, it = cat.items[id];
+            if (cur[it.slot] === id) { takeOff(it.slot); if (it.slot === 'hair' && !cur.hair) cur.hair = id; } // tóc không để trống
+            else { cur[it.slot] = id; cur = normalize(cur, it.slot); }
+            draw(); }; });
+          q('[data-buy]').forEach(function (b) { b.onclick = function (e) {
+            e.stopPropagation();
             var id = b.dataset.buy, it = cat.items[id];
             if (!confirm('Buy "' + it.name + '" for ' + it.price + ' coins?')) return;
-            busy = true; sel = ''; draw();
+            busy = true; draw();
             api({ action: 'buy', style: style, item: id, g: G() }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { busy = false; draw(); });
               if (!j.ok) throw new Error(j.error); W = wkeep(style, G(), j); cur[it.slot] = id; cur = normalize(cur, it.slot); toast('🎉 You got ' + it.name + '! Don’t forget to tap Save');
@@ -400,7 +445,8 @@
             }).catch(function (e) { toast(e.message); }).then(function () { busy = false; draw(); });
           }; });
           q('[data-save]').forEach(function (b) { b.onclick = function () {
-            b.disabled = true; b.textContent = '…';
+            if (!creating) { var nm = notMine(); if (nm.length) { nm.forEach(takeOff); draw(); } } // đồ mặc thử chưa mua → tự gỡ ra (không hỏi)
+            var sb = ov.querySelector('[data-save]'); sb.disabled = true; sb.textContent = '…';
             var o = Object.assign({}, cur);
             api({ action: 'outfit', style: style, outfit: o }).then(function (j) {
               if (j.auth) return A().authFailed({}).then(function () { draw(); });
