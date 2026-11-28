@@ -1,5 +1,5 @@
 /* Bộ nhân vật KET (chibi vũ trụ ~11 tuổi). Sinh bằng build-ket.mjs – khớp AV_CATALOG.ket trong Code.gs. */
-YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50, w: 500, h: 500 }, defaults: { kbm: { hair: 'kmh1', top: 'kmt1', bottom: 'kmb1', shoes: 'kms1' }, kbf: { hair: 'kfh1', top: 'kft1', bottom: 'kfb1', shoes: 'kfs1' } }, items: {
+YumiAvatar.register('ket', {"w":1024,"h":1536,"dir":"ket","head":{"x":262,"y":50,"w":500,"h":500},"defaults":{"kbm":{"hair":"kmh1","top":"kmt1","bottom":"kmb1","shoes":"kms1"},"kbf":{"hair":"kfh1","top":"kft1","bottom":"kfb1","shoes":"kfs1"}}, "items": {
  "kbm": {
   "slot": "body",
   "name": "Boy",
@@ -191,18 +191,18 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "thumb": "th-kmset1.webp"
  },
  "kmhat1": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Propeller cap",
   "src": "shop",
   "rar": "c",
   "price": 140,
   "g": "m",
   "rel": "2026-12-07",
-  "img": "kmhat1.webp",
+  "img": "hh-kmhat1.webp",
   "x": 238,
   "y": 9,
-  "w": 478,
-  "h": 269,
+  "w": 547,
+  "h": 391,
   "thumb": "th-kmhat1.webp"
  },
  "kmset2": {
@@ -403,18 +403,18 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "thumb": "th-kfset1.webp"
  },
  "kfhat1": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Cat-ear beanie",
   "src": "shop",
   "rar": "c",
   "price": 140,
   "g": "f",
   "rel": "2026-12-07",
-  "img": "kfhat1.webp",
-  "x": 235,
+  "img": "hh-kfhat1.webp",
+  "x": 178,
   "y": 39,
-  "w": 519,
-  "h": 220,
+  "w": 647,
+  "h": 682,
   "thumb": "th-kfhat1.webp"
  },
  "kfbag1": {
@@ -572,7 +572,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "thumb": "th-kg1.webp"
  },
  "kxmh": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Santa hat",
   "src": "shop",
   "rar": "r",
@@ -581,11 +581,11 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "rel": "2026-12-01",
   "end": "2026-12-31",
   "ev": "xmas",
-  "img": "kxmh.webp",
+  "img": "hh-kxmh.webp",
   "x": 246,
   "y": 4,
   "w": 616,
-  "h": 349,
+  "h": 396,
   "thumb": "th-kxmh.webp"
  },
  "kxmt": {
@@ -658,7 +658,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "thumb": "th-kxmset.webp"
  },
  "kxfh": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Santa hat",
   "src": "shop",
   "rar": "r",
@@ -667,11 +667,11 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
   "rel": "2026-12-01",
   "end": "2026-12-31",
   "ev": "xmas",
-  "img": "kxfh.webp",
-  "x": 248,
+  "img": "hh-kxfh.webp",
+  "x": 178,
   "y": 8,
-  "w": 630,
-  "h": 369,
+  "w": 700,
+  "h": 713,
   "thumb": "th-kxfh.webp"
  },
  "kxft": {
@@ -925,6 +925,155 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
    }
   },
   "img": "kf3-m.webp",
+  "x": 337,
+  "y": 282,
+  "w": 351,
+  "h": 237
+ },
+ "kmh5": {
+  "slot": "hair",
+  "name": "Pilot earflap hat",
+  "src": "shop",
+  "rar": "r",
+  "price": 180,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "kmh5.webp",
+  "x": 203,
+  "y": 27,
+  "w": 605,
+  "h": 535,
+  "thumb": "th-kmh5.webp"
+ },
+ "kmt3": {
+  "slot": "top",
+  "name": "Orange puffer jacket",
+  "src": "shop",
+  "rar": "r",
+  "price": 220,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "kmt3.webp",
+  "x": 241,
+  "y": 529,
+  "w": 532,
+  "h": 403,
+  "thumb": "th-kmt3.webp"
+ },
+ "kmb3": {
+  "slot": "bottom",
+  "name": "Khaki cargo pants",
+  "src": "shop",
+  "rar": "c",
+  "price": 180,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "kmb3.webp",
+  "x": 323,
+  "y": 832,
+  "w": 367,
+  "h": 508,
+  "thumb": "th-kmb3.webp"
+ },
+ "kms3": {
+  "slot": "shoes",
+  "name": "Red high-tops",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "kms3.webp",
+  "x": 313,
+  "y": 1326,
+  "w": 388,
+  "h": 171,
+  "thumb": "th-kms3.webp"
+ },
+ "kfh5": {
+  "slot": "hair",
+  "name": "Lilac bobble hat",
+  "src": "shop",
+  "rar": "r",
+  "price": 180,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "kfh5.webp",
+  "x": 264,
+  "y": 4,
+  "w": 484,
+  "h": 796,
+  "thumb": "th-kfh5.webp"
+ },
+ "kft3": {
+  "slot": "top",
+  "name": "Pink fleece jacket",
+  "src": "shop",
+  "rar": "r",
+  "price": 220,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "kft3.webp",
+  "x": 229,
+  "y": 522,
+  "w": 554,
+  "h": 475,
+  "thumb": "th-kft3.webp"
+ },
+ "kfb3": {
+  "slot": "bottom",
+  "name": "Corduroy skirt",
+  "src": "shop",
+  "rar": "c",
+  "price": 180,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "kfb3.webp",
+  "x": 328,
+  "y": 802,
+  "w": 364,
+  "h": 324,
+  "thumb": "th-kfb3.webp"
+ },
+ "kfs3": {
+  "slot": "shoes",
+  "name": "Lilac fluffy boots",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "kfs3.webp",
+  "x": 322,
+  "y": 1260,
+  "w": 378,
+  "h": 237,
+  "thumb": "th-kfs3.webp"
+ },
+ "kf4": {
+  "slot": "face",
+  "name": "Brrr! face",
+  "src": "shop",
+  "rar": "c",
+  "price": 120,
+  "rel": "2026-11-30",
+  "imgs": {
+   "m": {
+    "img": "kf4-m.webp",
+    "x": 337,
+    "y": 282,
+    "w": 351,
+    "h": 237
+   },
+   "f": {
+    "img": "kf4-f.webp",
+    "x": 337,
+    "y": 282,
+    "w": 351,
+    "h": 237
+   }
+  },
+  "img": "kf4-m.webp",
   "x": 337,
   "y": 282,
   "w": 351,

@@ -73,6 +73,8 @@
   function variant(it, g) { var v = it.imgs && it.imgs[g]; return v ? Object.assign({}, it, v) : it; } // biểu cảm: hình riêng theo thân
   function withDefaults(cat, o) { // ô trống bắt buộc (người, mặt) → món miễn phí đầu tiên
     o = Object.assign({}, o);
+    // món đã đổi ô (mũ cũ → "tóc liền mũ" ô hair, 2026-11-30): chuyển về đúng ô; mũ cũ thay cho tóc đang mặc
+    Object.keys(o).forEach(function (k) { var it = cat.items[o[k]]; if (k !== 'body' && it && it.slot && it.slot !== k) { if (k === 'hat' || !o[it.slot]) o[it.slot] = o[k]; delete o[k]; } });
     ['body'].forEach(function (slot) { // mặt gốc có sẵn trong người → ô Mặt để trống = mặc định
       if (!o[slot]) { var id = Object.keys(cat.items).filter(function (k) { return cat.items[k].slot === slot && cat.items[k].src === 'free' && !cat.items[k].hide; })[0]; if (id) o[slot] = id; }
     });
@@ -107,7 +109,7 @@
   }
   /** HTML nhân vật từ chuỗi outfit (bảng xếp hạng). Danh mục chưa nạp → chỗ trống, nạp xong tự vẽ lại. */
   /* Đầu nhân vật (bảng xếp hạng, trang chủ): ghép các lớp thành 1 ảnh nhỏ 128px rồi nhớ lại → mỗi bạn 1 ảnh nhỏ thay vì 5–8 lớp ảnh lớn. */
-  var HEAD_PX = 128, HEAD_VER = 'h3', HKEY = 'yumi-heads', HMAX = 60, HMEM = {}, HPEND = {}, IMGS = {};
+  var HEAD_PX = 128, HEAD_VER = 'h4', HKEY = 'yumi-heads', HMAX = 60, HMEM = {}, HPEND = {}, IMGS = {};
   var canHead = (function () { try { var c = document.createElement('canvas'); return !!(c.getContext && c.getContext('2d')); } catch (_) { return false; } })();
   function headStore() { try { return JSON.parse(localStorage.getItem(HKEY)) || {}; } catch (_) { return {}; } }
   function headGet(k) {

@@ -1,5 +1,5 @@
 /* Bộ nhân vật TEEN v2 (PET + B2 First): thân nam/nữ, đồ riêng từng giới (g), đồ dùng chung, đồ cũ (hide). Sinh bằng build2.mjs – khớp AV_CATALOG trong Code.gs. */
-YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 20, w: 380, h: 380 }, defaults: { bm: { hair: 'mh1', top: 'mt1', bottom: 'mb1', shoes: 'ms1' }, bf: { hair: 'fh1', top: 'ft1', bottom: 'fb1', shoes: 'fs1' } }, items: {
+YumiAvatar.register('teen', {"w":1024,"h":1536,"dir":"teen","head":{"x":322,"y":20,"w":380,"h":380},"defaults":{"bm":{"hair":"mh1","top":"mt1","bottom":"mb1","shoes":"ms1"},"bf":{"hair":"fh1","top":"ft1","bottom":"fb1","shoes":"fs1"}}, "items": {
  "bm": {
   "slot": "body",
   "name": "Boy",
@@ -217,18 +217,18 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "thumb": "th-mset1.webp"
  },
  "mhat1": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Backwards cap",
   "src": "shop",
   "rar": "c",
   "price": 160,
   "g": "m",
   "rel": "2026-11-30",
-  "img": "mhat1.webp",
-  "x": 416,
-  "y": 46,
-  "w": 232,
-  "h": 221,
+  "img": "hh-mhat1.webp",
+  "x": 395,
+  "y": 61,
+  "w": 239,
+  "h": 206,
   "thumb": "th-mhat1.webp"
  },
  "mset2": {
@@ -399,18 +399,18 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "thumb": "th-fs2.webp"
  },
  "fhat1": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Red beret",
   "src": "shop",
   "rar": "c",
   "price": 160,
   "g": "f",
   "rel": "2026-11-23",
-  "img": "fhat1.webp",
-  "x": 381,
+  "img": "hh-fhat1.webp",
+  "x": 338,
   "y": 43,
-  "w": 198,
-  "h": 291,
+  "w": 345,
+  "h": 572,
   "thumb": "th-fhat1.webp"
  },
  "fbag1": {
@@ -429,18 +429,18 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "thumb": "th-fbag1.webp"
  },
  "fhat2": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Royal crown",
   "src": "chest",
   "rar": "x",
   "price": 0,
   "g": "f",
   "rel": "",
-  "img": "fhat2.webp",
-  "x": 454,
+  "img": "hh-fhat2.webp",
+  "x": 338,
   "y": 18,
-  "w": 186,
-  "h": 316,
+  "w": 345,
+  "h": 597,
   "thumb": "th-fhat2.webp"
  },
  "fset2": {
@@ -460,7 +460,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "thumb": "th-fset2.webp"
  },
  "xmh": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Santa hat",
   "src": "shop",
   "rar": "r",
@@ -469,11 +469,11 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "rel": "2026-12-01",
   "end": "2026-12-31",
   "ev": "xmas",
-  "img": "xmh.webp",
-  "x": 395,
+  "img": "hh-xmh.webp",
+  "x": 381,
   "y": 20,
-  "w": 290,
-  "h": 185,
+  "w": 304,
+  "h": 219,
   "thumb": "th-xmh.webp"
  },
  "xmt": {
@@ -546,7 +546,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "thumb": "th-xmset.webp"
  },
  "xfh": {
-  "slot": "hat",
+  "slot": "hair",
   "name": "Santa hat",
   "src": "shop",
   "rar": "r",
@@ -555,11 +555,11 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "rel": "2026-12-01",
   "end": "2026-12-31",
   "ev": "xmas",
-  "img": "xfh.webp",
-  "x": 394,
+  "img": "hh-xfh.webp",
+  "x": 338,
   "y": 30,
-  "w": 296,
-  "h": 229,
+  "w": 352,
+  "h": 585,
   "thumb": "th-xfh.webp"
  },
  "xft": {
@@ -1156,5 +1156,154 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
   "w": 321,
   "h": 163,
   "thumb": "th-pa2.webp"
+ },
+ "mh5": {
+  "slot": "hair",
+  "name": "Beanie & fringe",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "mh5.webp",
+  "x": 397,
+  "y": 64,
+  "w": 227,
+  "h": 176,
+  "thumb": "th-mh5.webp"
+ },
+ "mt4": {
+  "slot": "top",
+  "name": "Green puffer jacket",
+  "src": "shop",
+  "rar": "r",
+  "price": 220,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "mt4.webp",
+  "x": 261,
+  "y": 290,
+  "w": 498,
+  "h": 504,
+  "thumb": "th-mt4.webp"
+ },
+ "mb3": {
+  "slot": "bottom",
+  "name": "Dark jeans",
+  "src": "shop",
+  "rar": "c",
+  "price": 200,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "mb3.webp",
+  "x": 354,
+  "y": 654,
+  "w": 315,
+  "h": 646,
+  "thumb": "th-mb3.webp"
+ },
+ "ms3": {
+  "slot": "shoes",
+  "name": "Hiking boots",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "m",
+  "rel": "2026-11-30",
+  "img": "ms3.webp",
+  "x": 314,
+  "y": 1247,
+  "w": 395,
+  "h": 197,
+  "thumb": "th-ms3.webp"
+ },
+ "fh4": {
+  "slot": "hair",
+  "name": "Pom-pom beanie",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "fh4.webp",
+  "x": 327,
+  "y": 8,
+  "w": 362,
+  "h": 536,
+  "thumb": "th-fh4.webp"
+ },
+ "ft3": {
+  "slot": "top",
+  "name": "Cable-knit sweater",
+  "src": "shop",
+  "rar": "r",
+  "price": 220,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "ft3.webp",
+  "x": 233,
+  "y": 330,
+  "w": 557,
+  "h": 521,
+  "thumb": "th-ft3.webp"
+ },
+ "fb2": {
+  "slot": "bottom",
+  "name": "Wide-leg jeans",
+  "src": "shop",
+  "rar": "c",
+  "price": 200,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "fb2.webp",
+  "x": 332,
+  "y": 579,
+  "w": 352,
+  "h": 721,
+  "thumb": "th-fb2.webp"
+ },
+ "fs3": {
+  "slot": "shoes",
+  "name": "Fluffy winter boots",
+  "src": "shop",
+  "rar": "r",
+  "price": 200,
+  "g": "f",
+  "rel": "2026-11-30",
+  "img": "fs3.webp",
+  "x": 321,
+  "y": 1252,
+  "w": 380,
+  "h": 200,
+  "thumb": "th-fs3.webp"
+ },
+ "f4": {
+  "slot": "face",
+  "name": "Brrr! face",
+  "src": "shop",
+  "rar": "c",
+  "price": 150,
+  "rel": "2026-11-30",
+  "imgs": {
+   "m": {
+    "img": "f4-m.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   },
+   "f": {
+    "img": "f4-f.webp",
+    "x": 430,
+    "y": 168,
+    "w": 165,
+    "h": 129
+   }
+  },
+  "img": "f4-m.webp",
+  "x": 430,
+  "y": 168,
+  "w": 165,
+  "h": 129
  }
 } });
