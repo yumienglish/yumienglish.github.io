@@ -23,14 +23,14 @@
   var STARS = { c: 1, r: 2, e: 3, x: 4 };
   // khung tính cỡ nhân vật trong tủ đồ: bỏ lề trống 2 bên (cánh / thú cưng vẫn được vẽ tràn ra ngoài)
   var figBox = function (cat) { return { x: cat.w * 0.16, y: 0, w: cat.w * 0.68, h: cat.h }; };
-  // nhóm lọc trong Shop (gộp nhiều ô cho ít nút, dễ tìm) – 'all' và 'new' là nhóm đặc biệt
+  // nhóm lọc trong Shop (gộp nhiều ô cho ít nút, dễ tìm; dải dọc chỉ hiện biểu tượng) – 'new' = hàng mới tuần này
   var SHOP_CATS = [
-    ['all', '✨', 'All'], ['new', '🆕', 'New'], ['look', '💇', 'Hair & Face', ['hair', 'face']],
+    ['new', '🆕', 'New'], ['look', '💇', 'Hair & Face', ['hair', 'face']],
     ['clothes', '👕', 'Clothes', ['top', 'bottom', 'dress', 'set']], ['shoes', '👟', 'Shoes', ['shoes']],
     ['acc', '🧢', 'Accessories', ['hat', 'glasses', 'bag', 'hand']], ['pets', '🐾', 'Pets', ['pet', 'petacc']], ['wings', '🪽', 'Wings', ['wings']]
   ];
   // thứ tự vẽ (dưới → trên)
-  var Z = ['wings', 'body', 'bottom', 'shoes', 'top', 'dress', 'set', 'face', 'hair', 'glasses', 'hat', 'bag', 'hand', 'pet', 'petacc'];
+  var Z = ['wings', 'body', 'bottom', 'shoes', 'top', 'dress', 'set', 'face', 'hair', 'glasses', 'hat', 'bag', 'hand', 'petacc', 'pet']; // đồ thú cưng (đệm, bệ, hộp quà) nằm dưới thú cưng
   var RAR = { c: 'Common', r: 'Rare', e: 'Epic', x: 'Exquisite' };
   // Sự kiện (khớp AV_EVENTS trong Code.gs): đồ giới hạn thời gian
   var EVENTS = [{ id: 'xmas', icon: '🎄', name: 'Christmas Event', start: '2026-12-01', end: '2026-12-31' }];
@@ -87,6 +87,9 @@
     var held = o.hand && cat.items[o.hand]; // món cầm tay vẽ cả bàn tay mới → thân dùng ảnh không có bàn tay phải (tránh 2 bàn tay)
     return Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
       if (it && slot === 'body' && held && held.nohand && it.nohand) it = Object.assign({}, it, { img: it.nohand });
+      // đệm / bệ ngồi (seat) → nâng thú cưng lên để chân đặt trên mặt đệm (~45% chiều cao đệm tính từ trên)
+      var acc = o.petacc && cat.items[o.petacc];
+      if (it && slot === 'pet' && acc && acc.seat) { var lift = (it.y + it.h) - (acc.y + acc.h * 0.45); if (lift > 0) it = Object.assign({}, it, { y: it.y - lift }); }
       return it ? variant(it, g) : null; }).filter(Boolean);
   }
   function render(cat, o, opts) {
@@ -205,10 +208,10 @@
     '.yw-rail button i{display:block;font-style:normal;font-size:22px;line-height:1.15;margin-bottom:2px}' +
     '.yw-rail button.on{background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));color:#fff}' +
     '.yw-rail .yw-cn{position:absolute;top:-5px;right:-6px;margin:0}' +
-    // nút lưu nổi (góc trên trái) + nhắc đang mặc thử
+    '.yw-rail.ic button{padding:9px 2px}.yw-rail.ic button i{font-size:26px;margin:0}' + // Shop: nút chỉ có biểu tượng
+    // nút lưu nổi (góc trên trái; góc dưới trái là chỗ thú cưng)
     '.yw-save{position:absolute;left:8px;top:6px;z-index:2;border:0;border-radius:99px;padding:11px 18px;font:inherit;font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));box-shadow:0 4px 12px rgba(0,0,0,.28)}' +
     '.yw-save[disabled]{opacity:.55;cursor:default;box-shadow:none}' +
-    '.yw-trying{position:absolute;left:8px;top:56px;z-index:2;max-width:128px;background:rgba(255,255,255,.94);color:#2b2440;border-radius:12px;padding:6px 10px;font-size:11.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.18)}' +
     // cột đồ
     '.yw-list{grid-area:list;position:relative;z-index:2;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:rgba(255,255,255,.9);color:#2b2440;padding:8px 7px 28px;border-radius:18px 0 0 0;box-shadow:-4px 0 18px rgba(0,0,0,.18)}' +
     '.yw-dark .yw-list{background:rgba(24,17,56,.92);color:#fff}' +
@@ -228,7 +231,6 @@
     '.yw-buy{display:block;margin-top:5px;border:0;border-radius:10px;padding:6px 4px;font:inherit;font-weight:800;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;width:100%}' +
     '.yw-buy[disabled]{opacity:.45;cursor:default}' +
     '.yw-own{display:block;margin-top:5px;font-size:11px;font-weight:800;color:#2e9d4f}.yw-dark .yw-own{color:#7ee2a0}' +
-    '.yw-need{display:block;margin-top:4px;font-size:10.5px;font-weight:700;color:#d9480f}.yw-dark .yw-need{color:#ffcf3f}' +
     '.yw-it.lock{cursor:default;opacity:.6}.yw-it.lock .yw-th{filter:grayscale(.5)}' +
     '.yw-cn{display:inline-block;margin-left:4px;background:linear-gradient(135deg,#ff2e88,#ffb300);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;animation:yw-pulse 1.6s ease-in-out infinite}' +
     '@keyframes yw-pulse{50%{transform:scale(1.12)}}' +
@@ -251,7 +253,7 @@
     '@media(min-width:721px){.yw{--yw-lw:360px;--yw-rw:70px;height:calc(100% - 32px);margin:16px auto;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}.yw.wide{--yw-lw:460px}' +
       '.yw-list .yw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.yw-it b{font-size:12.5px}.yw-rail button{font-size:10.5px}.yw-rail button i{font-size:26px}' +
       '.yw-bar{padding:12px 14px 8px}.yw-tabs{flex:0 1 420px}.yw-tabs button{font-size:14.5px;padding:9px 10px}.yw-bar .yw-coin{margin-left:auto}' +
-      '.yw-save{font-size:17px;padding:12px 24px;left:16px;top:10px}.yw-trying{left:16px;top:68px;max-width:none}}';
+      '.yw-save{font-size:17px;padding:12px 24px;left:16px;top:10px}}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
 
   /* ---------------- máy chủ ---------------- */
@@ -293,7 +295,7 @@
         ov.classList.add(th.bg && !th.dark ? 'yw-light' : 'yw-dark'); // trang nền sáng / tối
         document.body.appendChild(ov);
         try { document.documentElement.style.overflow = 'hidden'; } catch (_) {}
-        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, shopCat = 'all';
+        var W = null, tab = creating ? 'wardrobe' : (opts.tab || 'wardrobe'), slot = creating ? 'body' : 'hair', busy = false, got = null, shopCat = '';
         var saved = myOutfit(style) || {}, cur = withDefaults(cat, saved);
         var G = function () { return genderOf(cat, cur); };
         W = creating ? null : wcached(style, G()); // hiện ngay bản lần trước
@@ -356,14 +358,14 @@
               var all = W.shop.filter(function (id) { return cat.items[id] && vis(cat.items[id]); })
                 .sort(function (a, b) { var ea = !!cat.items[a].ev, eb = !!cat.items[b].ev; return (eb - ea) || (fresh.indexOf(b) >= 0) - (fresh.indexOf(a) >= 0) || cat.items[a].price - cat.items[b].price; });
               // nhóm lọc (dải dọc): chỉ hiện nhóm có hàng; nhóm có đồ mới tuần này → chữ NEW
-              var inCat = function (c, id) { return c[0] === 'all' || (c[0] === 'new' ? fresh.indexOf(id) >= 0 : c[3].indexOf(cat.items[id].slot) >= 0); };
+              var inCat = function (c, id) { return c[0] === 'new' ? fresh.indexOf(id) >= 0 : c[3].indexOf(cat.items[id].slot) >= 0; };
               var cats = SHOP_CATS.filter(function (c) { return all.some(function (id) { return inCat(c, id); }); });
-              if (!cats.some(function (c) { return c[0] === shopCat; })) shopCat = 'all';
+              if (!cats.some(function (c) { return c[0] === shopCat; })) shopCat = cats[0] ? cats[0][0] : 'new'; // mở Shop: vào nhóm New (nếu có hàng mới), không thì nhóm đầu
               var curCat = cats.filter(function (c) { return c[0] === shopCat; })[0] || SHOP_CATS[0];
               var list = all.filter(function (id) { return inCat(curCat, id); });
               rail = cats.map(function (c) {
-                var n = all.filter(function (id) { return inCat(c, id); }).length, nn = c[0] === 'all' ? 0 : all.filter(function (id) { return inCat(c, id) && fresh.indexOf(id) >= 0; }).length;
-                return '<button data-c="' + c[0] + '"' + (c[0] === shopCat ? ' class="on"' : '') + '><i>' + c[1] + '</i>' + c[2] +
+                var n = all.filter(function (id) { return inCat(c, id); }).length, nn = all.filter(function (id) { return inCat(c, id) && fresh.indexOf(id) >= 0; }).length;
+                return '<button data-c="' + c[0] + '" title="' + c[2] + '" aria-label="' + c[2] + '"' + (c[0] === shopCat ? ' class="on"' : '') + '><i>' + c[1] + '</i>' +
                   (c[0] === 'new' ? '<span class="yw-cn">' + n + '</span>' : nn ? '<span class="yw-cn">NEW</span>' : '') + '</button>'; }).join('');
               if (ev) body += '<div class="yw-ev">🎄 ' + esc(ev.name) + '<small>Limited items · ends in ' + daysLeft(ev) + ' day' + (daysLeft(ev) === 1 ? '' : 's') + '!</small></div>';
               else if (soon) body += '<div class="yw-ev">' + soon.icon + ' ' + esc(soon.name) + ' in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!<small>Save your coins! 🪙</small></div>';
@@ -372,12 +374,12 @@
                 var it = cat.items[id], have = W.owned.indexOf(id) >= 0, can = W.coins >= it.price;
                 var foot = have ? '<span class="yw-own">✔ Owned</span>'
                   : can ? '<button class="yw-buy" data-buy="' + id + '" ' + (busy ? 'disabled' : '') + '>🪙 Buy ' + it.price + '</button>'
-                  : '<span class="yw-need">🔒 Need ' + (it.price - W.coins) + ' more</span><button class="yw-buy" disabled>🪙 ' + it.price + '</button>';
+                  : '<button class="yw-buy" disabled>🔒 ' + it.price + '</button>';
                 return '<div class="yw-it yw-r-' + (it.rar || 'c') + (cur[it.slot] === id ? ' on' : '') + '" data-try="' + id + '">' + (fresh.indexOf(id) >= 0 ? '<span class="yw-new">NEW</span>' : '') + chk(id) +
                   thumb(it) + '<b>' + esc(it.name) + '</b>' + stars(it) + (it.ev ? '<small class="yw-ltdt">❄️ Limited</small>' : '') + foot + '</div>';
               }).join('') + '</div>' + (list.length ? '' : '<p class="yw-note">Nothing here yet. New items arrive every Monday!</p>');
               if (soon) { // đồ sự kiện sắp mở: xếp cuối danh sách, theo nhóm đang chọn (nhóm New thì không hiện)
-                var peek = shopCat === 'new' ? [] : items(function (it) { return it.ev === soon.id && vis(it) && (shopCat === 'all' || curCat[3].indexOf(it.slot) >= 0); });
+                var peek = shopCat === 'new' ? [] : items(function (it) { return it.ev === soon.id && vis(it) && curCat[3].indexOf(it.slot) >= 0; });
                 if (peek.length) body += '<p class="yw-sec">' + soon.icon + ' Coming ' + dm(soon.start) + '</p><div class="yw-grid">' + peek.map(function (id) { var it = cat.items[id];
                   return '<div class="yw-it lock yw-r-' + (it.rar || 'c') + '"><span class="yw-soon">SOON</span>' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (it.src === 'chest' ? '💎 Chest' : '🪙 ' + it.price) + '</small></div>'; }).join('') + '</div>';
               }
@@ -391,15 +393,13 @@
               '<button data-chest="coins" ' + (busy || !W || W.coins < W.chestPrice || !left ? 'disabled' : '') + '>🪙 ' + (W ? W.chestPrice : 600) + ' coins</button></div>' +
               '<p class="yw-note">Free chests: 1 for every 5 lessons, and 1 for every 3 lessons that are 100% right on the first try.<span class="yw-vi">Rương tặng: cứ 5 bài tập → 1 rương, cứ 3 bài đúng hết ngay lần 1 → 1 rương.</span></p></div>';
           }
-          var nm = creating ? [] : notMine();
           var tabs = [['wardrobe', '👕', 'Wardrobe'], ['shop', '🛍️', 'Shop'], ['chest', '💎', 'Chest']].map(function (t) {
             return '<button data-t="' + t[0] + '"' + (tab === t[0] ? ' class="on"' : '') + '>' + t[1] + '<span class="tl"> ' + t[2] + '</span></button>'; }).join('');
           ov.innerHTML = '<div class="yw' + (tab === 'chest' ? ' wide' : '') + (rail ? '' : ' norail') + '"><div class="yw-bar">' +
             (creating ? '<h2 class="yw-title">✨ Create your character</h2>' : '<button class="yw-x" data-x aria-label="Close">✕</button><div class="yw-tabs">' + tabs + '</div><span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>') + '</div>' +
             '<div class="yw-zone"><div class="yw-win">' + d[0] + '</div><span class="yw-dec a">' + d[1] + '</span><span class="yw-dec b">' + d[2] + '</span>' +
             '<div class="yw-figwrap"><div class="yw-rug"></div><div class="yw-fig">' + render(cat, cur, { box: figBox(cat) }) + '</div></div>' +
-            (rail ? '<div class="yw-rail">' + rail + '</div>' : '') +
-            (nm.length ? '<div class="yw-trying">👀 Trying on · buy to keep!</div>' : '') +
+            (rail ? '<div class="yw-rail' + (tab === 'shop' ? ' ic' : '') + '">' + rail + '</div>' : '') +
             '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save') + '</button></div>' +
             '<div class="yw-list">' + body + '</div></div>';
           fit();

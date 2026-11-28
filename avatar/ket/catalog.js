@@ -476,6 +476,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kpa1": {
   "slot": "petacc",
+  "seat": 1,
   "name": "Mini UFO pad",
   "src": "shop",
   "rar": "c",

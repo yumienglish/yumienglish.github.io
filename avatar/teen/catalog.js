@@ -1061,6 +1061,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "pa1": {
   "slot": "petacc",
+  "seat": 1,
   "name": "Glow cushion",
   "src": "shop",
   "rar": "c",

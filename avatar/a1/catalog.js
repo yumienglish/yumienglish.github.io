@@ -431,6 +431,7 @@ YumiAvatar.register('a1', { w: 1024, h: 1536, dir: 'a1', head: { x: 187, y: 80, 
  },
  "apa1": {
   "slot": "petacc",
+  "seat": 1,
   "name": "Mushroom seat",
   "src": "shop",
   "rar": "c",
