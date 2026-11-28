@@ -170,10 +170,9 @@
   /* ---------------- CSS ---------------- */
   var CSS = '' +
     '.yw-ov{position:fixed;inset:0;z-index:2147483001;background:var(--ya-bg,#120d2b);color:var(--ya-text,#fff);font-family:var(--ya-font,system-ui);overflow-y:auto;-webkit-overflow-scrolling:touch}' +
-    '.yw{max-width:980px;margin:0 auto;padding:14px 14px 40px;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px}' +
-    '.yw>div{min-width:0}.yw-top{min-width:0}' +
-    '@media(max-width:720px){.yw{grid-template-columns:minmax(0,1fr)}.yw-left{position:sticky;top:0;z-index:2;background:var(--ya-bg,#120d2b);padding-bottom:8px}.yw-stage{max-width:210px;margin:0 auto}}' +
-    '.yw-top{display:flex;align-items:center;gap:10px;grid-column:1/-1}' +
+    '.yw{max-width:980px;margin:0 auto;padding:14px 14px 40px;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);grid-template-rows:auto auto 1fr;grid-template-areas:"top top" "left tabs" "left right";gap:0 16px}' +
+    '.yw>div{min-width:0}.yw-top{min-width:0;grid-area:top;margin-bottom:16px}.yw-left{grid-area:left}.yw>.yw-tabs{grid-area:tabs}.yw-right{grid-area:right}' +
+    '.yw-top{display:flex;align-items:center;gap:10px}' +
     '.yw-top h2{flex:1;margin:0;font-family:var(--ya-head,inherit);font-size:26px}' +
     '.yw-coin{font-weight:800;font-size:18px;background:linear-gradient(135deg,#ffcf3f,#ff9f1c);color:#3b2300;border-radius:99px;padding:6px 14px;white-space:nowrap}' +
     '.yw-x{border:0;background:rgba(255,255,255,.12);color:inherit;width:42px;height:42px;border-radius:50%;font-size:20px;cursor:pointer}' +
@@ -224,7 +223,24 @@
     '.yw-light .yw-earn b{color:#d9480f}.yw-light .yw-need{color:#d9480f}.yw-light .yw-left{background:var(--ya-bg)}' +
     '.yw-ev{background:linear-gradient(135deg,#c62828,#2e7d32);color:#fff;border-radius:14px;padding:10px 12px;margin:0 0 10px;font-weight:800;display:flex;align-items:center;gap:8px}' +
     '.yw-ev small{display:block;font-weight:600;opacity:.9}.yw-ev b{font-size:16px}' +
-    '.yw-ltd{position:absolute;top:6px;right:6px;background:#e53935;color:#fff;font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:99px}';
+    '.yw-ltd{position:absolute;top:6px;right:6px;background:#e53935;color:#fff;font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:99px}' +
+    '.yw-new,.yw-ltd{z-index:1}' + // ảnh món khoá có filter (tạo lớp riêng) → không được che nhãn NEW/SOON
+    // điện thoại: 2 bên song song – nhân vật trái (đứng yên khi cuộn), đồ phải (lưới 2 cột, thẻ gọn); tab trải ngang trên cùng
+    '@media(max-width:720px){' +
+    '.yw{grid-template-columns:minmax(0,38fr) minmax(0,62fr);grid-template-rows:auto auto 1fr;grid-template-areas:"top top" "tabs tabs" "left right";gap:0 10px;padding:10px 10px 30px}' +
+    '.yw-top{margin-bottom:10px}.yw-top h2{font-size:20px}.yw-coin{font-size:15px;padding:5px 11px}.yw-x{width:36px;height:36px;font-size:17px}' +
+    '.yw-left{position:sticky;top:8px;align-self:start;z-index:2}.yw-stage{border-radius:16px;padding:2px}' +
+    '.yw-save{font-size:13.5px;padding:9px 4px;border-radius:12px;margin-top:8px}' +
+    '.yw-tabs{margin-bottom:10px}.yw-tabs button{padding:8px 2px;font-size:14px}' +
+    '.yw-slots{gap:5px}.yw-slots button{font-size:12px;padding:5px 8px}.yw-cn{font-size:9px;padding:1px 5px;margin-left:3px}' +
+    '.yw-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}' +
+    // xem trước đồ sự kiện: 1 hàng vuốt ngang, không đẩy đồ mua được xuống dưới
+    '.yw-grid.yw-peek{display:flex;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}.yw-peek>.yw-it{flex:0 0 46%}' +
+    '.yw-it{border-radius:12px;padding:4px 4px 6px}.yw-it b{font-size:11.5px}.yw-it small{font-size:10.5px}' +
+    '.yw-buy{font-size:12px;padding:5px 2px;margin-top:4px}.yw-acts{flex-direction:column;gap:4px;margin-top:4px}.yw-acts button{padding:6px 2px;font-size:12px}' +
+    '.yw-need{font-size:10.5px;margin-top:3px}.yw-new{top:4px;left:4px;font-size:9.5px;padding:1px 5px}.yw-ltd{top:4px;right:4px;font-size:9px;padding:1px 5px}' +
+    '.yw-note{font-size:12px;margin:2px 0 10px}.yw-ev{padding:8px;gap:6px;font-size:12px}.yw-ev b{font-size:13px}.yw-ev>span{font-size:22px!important}' +
+    '.yw-chest{padding:4px}.yw-chest .yw-box{font-size:72px}.yw-chest .yw-btns{gap:6px}.yw-chest .yw-btns button{padding:10px 12px;font-size:13px}}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
 
   /* ---------------- máy chủ ---------------- */
@@ -289,10 +305,11 @@
           var h = '<div class="yw"><div class="yw-top"><h2>' + (creating ? '✨ Create your character' : '👕 Wardrobe') + '</h2>' +
             '<span class="yw-coin">🪙 ' + (W ? W.coins : '…') + '</span>' + (creating ? '' : '<button class="yw-x" data-x aria-label="Close">✕</button>') + '</div>' +
             '<div class="yw-left"><div class="yw-stage">' + render(cat, cur) + '</div>' +
-            (W ? '<div class="yw-stat"><span>🔥 ' + W.streak + '-week streak' + (W.mult > 1 ? ' (×' + W.mult + ' coins)' : '') + '</span><span>🎁 ' + W.freeChests + ' free chest' + (W.freeChests === 1 ? '' : 's') + '</span></div>' : '') +
-            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save character') + '</button></div><div class="yw-right">';
+            '<button class="yw-save" data-save ' + (dirty || creating ? '' : 'disabled') + '>' + (creating ? 'Done, let’s play! 🚀' : '💾 Save character') + '</button></div>';
+          // hàng tab tách riêng: máy tính nằm trên cột phải, điện thoại trải ngang cả màn hình
           if (!creating) h += '<div class="yw-tabs"><button data-t="wardrobe"' + (tab === 'wardrobe' ? ' class="on"' : '') + '>👕 Wardrobe</button><button data-t="shop"' + (tab === 'shop' ? ' class="on"' : '') +
             '>🛍️ Shop</button><button data-t="chest"' + (tab === 'chest' ? ' class="on"' : '') + '>💎 Chest</button></div>';
+          h += '<div class="yw-right">';
           if (tab === 'wardrobe') {
             var slots = SLOTS.filter(function (s) { return items(function (it, id) { return it.slot === s[0] && (owns(id) || creating && it.src === 'free' && vis(it)); }).length; });
             if (!slots.some(function (s) { return s[0] === slot; }) && slots[0]) slot = slots[0][0];
@@ -324,7 +341,7 @@
               if (soon) { // xem trước đồ sự kiện sắp mở (khoá, chưa thử/mua được) – lọc theo nhóm đang chọn, nhóm New thì không hiện
                 var peek = shopCat === 'new' ? [] : items(function (it) { return it.ev === soon.id && vis(it) && (shopCat === 'all' || curCat[3].indexOf(it.slot) >= 0); });
                 h += '<div class="yw-ev"><span style="font-size:28px">' + soon.icon + '</span><div><b>' + esc(soon.name) + ' starts in ' + daysTo(soon) + ' day' + (daysTo(soon) === 1 ? '' : 's') + '!</b><small>Sneak peek: limited items from ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '. Save your coins! 🪙</small></div></div>' +
-                  (peek.length ? '<div class="yw-grid" style="margin-bottom:14px">' + peek.map(function (id) { var it = cat.items[id];
+                  (peek.length ? '<div class="yw-grid yw-peek" style="margin-bottom:14px">' + peek.map(function (id) { var it = cat.items[id];
                     return '<div class="yw-it lock yw-r-' + (it.rar || 'c') + '"><span class="yw-ltd">SOON ❄️</span>' + thumb(it) + '<b>' + esc(it.name) + '</b><small>' + (it.src === 'chest' ? '💎 Chest' : '🪙 ' + it.price) + '</small><span class="yw-need">Coming ' + esc(soon.start.slice(8) + '/' + soon.start.slice(5, 7)) + '</span></div>'; }).join('') + '</div>' : '');
               }
               if (ev) h += '<div class="yw-ev"><span style="font-size:28px">🎄</span><div><b>' + esc(ev.name) + '</b><small>Limited Christmas items · ends in ' + daysLeft(ev) + ' day' + (daysLeft(ev) === 1 ? '' : 's') + '!</small></div></div>';
@@ -348,9 +365,6 @@
               '<button data-chest="coins" ' + (busy || !W || W.coins < W.chestPrice || !left ? 'disabled' : '') + '>🪙 ' + (W ? W.chestPrice : 600) + ' coins</button></div>' +
               '<p class="yw-note">Free chests: 1 for every 5 lessons, and 1 for every 3 lessons that are 100% right on the first try.<span class="yw-vi">Rương tặng: cứ 5 bài tập → 1 rương, cứ 3 bài đúng hết ngay lần 1 → 1 rương.</span></p></div>';
           }
-          if (!creating) h += '<div class="yw-earn"><b>How to earn 🪙</b><br>📚 Every lesson: 30 coins for handing it in + up to 50 for your first-try score<br>✏️ Fix all mistakes on try 2: +20 · 🎯 Stay on the page: +10 · 💯 All correct first time: +20<br>' +
-            '🔥 Hand in every week: coins ×1.2 → ×1.5<br>🎮 Word mini games: +5 coins a round (3 rounds a day)' +
-            '<span class="yw-vi">Mỗi bài: 30 xu nộp bài + đến 50 xu theo điểm lần 1 · sửa hết lỗi ở lần 2 +20 · không rời trang +10 · đúng hết ngay +20 · tuần nào cũng nộp bài: xu ×1.2 → ×1.5 · mini game ôn từ +5 xu/lượt (3 lượt/ngày)</span></div>';
           ov.innerHTML = h + '</div></div>';
           bind();
         }
