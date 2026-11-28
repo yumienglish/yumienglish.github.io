@@ -176,6 +176,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kmset1": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Astronaut suit",
   "src": "shop",
   "rar": "e",
@@ -206,6 +207,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kmset2": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Galaxy Captain suit",
   "src": "chest",
   "rar": "x",
@@ -386,6 +388,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kfset1": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Astronaut suit",
   "src": "shop",
   "rar": "e",
@@ -431,6 +434,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kfset2": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Starlight Princess dress",
   "src": "chest",
   "rar": "x",
@@ -637,6 +641,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kxmset": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Ice Prince suit",
   "src": "chest",
   "rar": "x",
@@ -722,6 +727,7 @@ YumiAvatar.register('ket', { w: 1024, h: 1536, dir: 'ket', head: { x: 262, y: 50
  },
  "kxfset": {
   "slot": "set",
+  "ownShoes": 1,
   "name": "Snow Queen dress",
   "src": "chest",
   "rar": "x",

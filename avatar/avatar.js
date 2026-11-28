@@ -85,7 +85,11 @@
     o = withDefaults(cat, o || {});
     var g = genderOf(cat, o);
     var held = o.hand && cat.items[o.hand]; // món cầm tay vẽ cả bàn tay mới → thân dùng ảnh không có bàn tay phải (tránh 2 bàn tay)
-    return Z.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
+    // đồ bộ: ownShoes = có sẵn giày/ủng → không vẽ giày đang mặc; shoesOver = bộ chân trần → vẽ giày đè lên bộ
+    var setIt = o.set && cat.items[o.set], order = Z;
+    if (setIt && setIt.shoesOver) { order = Z.filter(function (s) { return s !== 'shoes'; }); order.splice(order.indexOf('set') + 1, 0, 'shoes'); }
+    return order.map(function (slot) { var it = o[slot] && cat.items[o[slot]];
+      if (slot === 'shoes' && setIt && setIt.ownShoes) return null;
       if (it && slot === 'body' && held && held.nohand && it.nohand) it = Object.assign({}, it, { img: it.nohand });
       // đệm / bệ ngồi (seat) → nâng thú cưng lên để chân đặt trên mặt đệm (~45% chiều cao đệm tính từ trên)
       var acc = o.petacc && cat.items[o.petacc];
@@ -103,7 +107,7 @@
   }
   /** HTML nhân vật từ chuỗi outfit (bảng xếp hạng). Danh mục chưa nạp → chỗ trống, nạp xong tự vẽ lại. */
   /* Đầu nhân vật (bảng xếp hạng, trang chủ): ghép các lớp thành 1 ảnh nhỏ 128px rồi nhớ lại → mỗi bạn 1 ảnh nhỏ thay vì 5–8 lớp ảnh lớn. */
-  var HEAD_PX = 128, HEAD_VER = 'h2', HKEY = 'yumi-heads', HMAX = 60, HMEM = {}, HPEND = {}, IMGS = {};
+  var HEAD_PX = 128, HEAD_VER = 'h3', HKEY = 'yumi-heads', HMAX = 60, HMEM = {}, HPEND = {}, IMGS = {};
   var canHead = (function () { try { var c = document.createElement('canvas'); return !!(c.getContext && c.getContext('2d')); } catch (_) { return false; } })();
   function headStore() { try { return JSON.parse(localStorage.getItem(HKEY)) || {}; } catch (_) { return {}; } }
   function headGet(k) {

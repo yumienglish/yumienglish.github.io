@@ -202,6 +202,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "mset1": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Esports team kit",
   "src": "shop",
   "rar": "e",
@@ -232,6 +233,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "mset2": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Galaxy idol suit",
   "src": "chest",
   "rar": "x",
@@ -352,6 +354,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "fset1": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Esports team kit",
   "src": "shop",
   "rar": "e",
@@ -442,6 +445,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "fset2": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Galaxy idol dress",
   "src": "chest",
   "rar": "x",
@@ -525,6 +529,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "xmset": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Ice Prince suit",
   "src": "chest",
   "rar": "x",
@@ -610,6 +615,7 @@ YumiAvatar.register('teen', { w: 1024, h: 1536, dir: 'teen', head: { x: 322, y: 
  },
  "xfset": {
   "slot": "set",
+  "shoesOver": 1,
   "name": "Snow Queen dress",
   "src": "chest",
   "rar": "x",
