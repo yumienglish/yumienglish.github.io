@@ -182,7 +182,7 @@
       '--w1:#2a2157;--w2:#4a3a86;--f1:#6d4c38;--f2:#3f2a20;--rug1:#ff7ab8;--rug2:#c2185b;--win1:#0e0a2e;--win2:#3b2a78}' +
     '.yw-st-ket{--w1:#e6f4ff;--w2:#c9e3ff;--f1:#b9c8df;--f2:#8ea2c2;--rug1:#a8d8ff;--rug2:#5aa9f0;--win1:#0b1240;--win2:#2b3a8f}' +
     '.yw-st-a1{--w1:#eef9e2;--w2:#d3eebf;--f1:#dcae7a;--f2:#b47e4c;--rug1:#ffd9a8;--rug2:#f0a35e;--win1:#7fd0ff;--win2:#d4f3ff}' +
-    '.yw{--yw-lw:31%;--yw-rw:58px;position:relative;height:100%;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) var(--yw-lw);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"bar bar" "zone list";overflow:hidden;' +
+    '.yw{--yw-lw:31%;--yw-rw:42px;position:relative;height:100%;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) var(--yw-lw);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"bar bar" "zone list";overflow:hidden;' +
       'background:linear-gradient(180deg,var(--w1) 0,var(--w2) 70%,var(--f1) 70%,var(--f2) 100%)}' +
     '.yw:before{content:"";position:absolute;left:0;right:0;top:70%;height:6px;background:rgba(0,0,0,.16)}' +
     '.yw.wide{--yw-lw:58%}.yw.norail{--yw-rw:0px}' +
@@ -198,17 +198,17 @@
     '.yw-zone{grid-area:zone;position:relative;min-width:0;min-height:0}' +
     '.yw-win{position:absolute;top:3%;right:calc(var(--yw-rw) + 18px);width:28%;max-width:150px;aspect-ratio:6/5;border-radius:10px;border:5px solid rgba(255,255,255,.95);background:linear-gradient(var(--win1),var(--win2));display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.6vw,24px);box-shadow:0 2px 0 rgba(0,0,0,.12)}' +
     '.yw-dec{position:absolute;line-height:1;pointer-events:none;font-size:clamp(26px,7vw,46px)}.yw-dec.a{top:19%;left:5%}.yw-dec.b{top:38%;left:4%}' +
-    '.yw-figwrap{position:absolute;top:4px;bottom:8px;left:0;right:calc(var(--yw-rw) * .35);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}' +
+    '.yw-figwrap{position:absolute;top:4px;bottom:8px;left:0;right:calc(var(--yw-rw) + 4px);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}' +
     '.yw-fig{position:relative;flex:none}.yw-fig .yav{filter:drop-shadow(0 6px 8px rgba(0,0,0,.22))}' +
     '.yw-rug{position:absolute;left:50%;bottom:0;width:min(78%,320px);height:7%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(var(--rug1),var(--rug2));opacity:.8}' +
     // dải nút nhóm dọc
-    '.yw-rail{position:absolute;top:0;bottom:0;right:3px;width:calc(var(--yw-rw) + 7px);z-index:2;display:flex;flex-direction:column;gap:7px;overflow-y:auto;scrollbar-width:none;padding:8px 7px 10px 0}.yw-rail::-webkit-scrollbar{display:none}' +
+    '.yw-rail{position:absolute;top:0;bottom:0;right:3px;box-sizing:border-box;width:calc(var(--yw-rw) + 7px);z-index:2;display:flex;flex-direction:column;gap:5px;overflow-y:auto;scrollbar-width:none;padding:8px 7px 10px 0}.yw-rail::-webkit-scrollbar{display:none}' +
     '.yw-rail>:first-child{margin-top:auto}.yw-rail>:last-child{margin-bottom:auto}' +
-    '.yw-rail button{position:relative;flex:none;width:100%;border:0;border-radius:16px;padding:6px 2px 5px;background:rgba(255,255,255,.9);color:#3a2f5c;font:inherit;font-size:9.5px;font-weight:800;line-height:1.1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.18)}' +
-    '.yw-rail button i{display:block;font-style:normal;font-size:22px;line-height:1.15;margin-bottom:2px}' +
+    '.yw-rail button{position:relative;flex:none;width:100%;border:0;border-radius:12px;padding:4px 1px 3px;background:rgba(255,255,255,.9);color:#3a2f5c;font:inherit;font-size:8px;font-weight:800;line-height:1.05;overflow-wrap:anywhere;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.18)}' +
+    '.yw-rail button i{display:block;font-style:normal;font-size:17px;line-height:1.2;margin-bottom:1px}' +
     '.yw-rail button.on{background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));color:#fff}' +
-    '.yw-rail .yw-cn{position:absolute;top:-5px;right:-6px;margin:0}' +
-    '.yw-rail.ic button{padding:9px 2px}.yw-rail.ic button i{font-size:26px;margin:0}' + // Shop: nút chỉ có biểu tượng
+    '.yw-rail .yw-cn{position:absolute;top:-6px;right:-7px;margin:0;font-size:8px;padding:0 4px}' +
+    '.yw-rail.ic button{padding:6px 0}.yw-rail.ic button i{font-size:19px;margin:0}' + // Shop: nút chỉ có biểu tượng
     // nút lưu nổi (góc trên trái; góc dưới trái là chỗ thú cưng)
     '.yw-save{position:absolute;left:8px;top:6px;z-index:2;border:0;border-radius:99px;padding:11px 18px;font:inherit;font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ya-acc,#ff2e88),var(--ya-acc2,#8f6cf6));box-shadow:0 4px 12px rgba(0,0,0,.28)}' +
     '.yw-save[disabled]{opacity:.55;cursor:default;box-shadow:none}' +
@@ -250,8 +250,8 @@
     '.yav-head{border-radius:50%}' +
     '@media(max-width:370px){.yw-tabs .tl{display:none}.yw-tabs button{font-size:17px}}' +
     // máy tính: khung game đứng giữa, cột đồ rộng 2 cột
-    '@media(min-width:721px){.yw{--yw-lw:360px;--yw-rw:70px;height:calc(100% - 32px);margin:16px auto;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}.yw.wide{--yw-lw:460px}' +
-      '.yw-list .yw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.yw-it b{font-size:12.5px}.yw-rail button{font-size:10.5px}.yw-rail button i{font-size:26px}' +
+    '@media(min-width:721px){.yw{--yw-lw:360px;--yw-rw:54px;height:calc(100% - 32px);margin:16px auto;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}.yw.wide{--yw-lw:460px}' +
+      '.yw-list .yw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.yw-it b{font-size:12.5px}.yw-rail button{font-size:9.5px}.yw-rail button i{font-size:21px}.yw-rail.ic button i{font-size:23px}' +
       '.yw-bar{padding:12px 14px 8px}.yw-tabs{flex:0 1 420px}.yw-tabs button{font-size:14.5px;padding:9px 10px}.yw-bar .yw-coin{margin-left:auto}' +
       '.yw-save{font-size:17px;padding:12px 24px;left:16px;top:10px}}';
   function injectCss() { if (document.getElementById('yw-css')) return; var s = document.createElement('style'); s.id = 'yw-css'; s.textContent = CSS; document.head.appendChild(s); }
